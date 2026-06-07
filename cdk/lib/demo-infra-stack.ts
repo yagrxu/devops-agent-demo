@@ -37,14 +37,22 @@ export class DemoInfraStack extends cdk.Stack {
     });
     internalSg.addIngressRule(internalSg, ec2.Port.allTraffic(), 'Self-referencing');
 
-    // ALB security group
+    // ALB security group — only allow CloudFront IP ranges
     const albSg = new ec2.SecurityGroup(this, 'AlbSg', {
       vpc,
-      description: 'ALB security group',
+      description: 'ALB security group - CloudFront only',
       allowAllOutbound: true,
     });
-    albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'HTTP from CloudFront');
+    // Use AWS-managed prefix list for CloudFront origin-facing IPs
+    albSg.addIngressRule(
+      ec2.Peer.prefixList('com.amazonaws.global.cloudfront.origin-facing'),
+      ec2.Port.tcp(80),
+      'HTTP from CloudFront only'
+    );
     internalSg.addIngressRule(albSg, ec2.Port.tcp(8080), 'From ALB to ECS');
+
+    // Secret header value to verify requests come from our CloudFront distribution
+    const cfOriginSecret = 'quickmart-demo-cf-origin-2026';
 
     // --- SNS Topic for Alarms ---
     const alarmTopic = new sns.Topic(this, 'DemoAlarmTopic', {
@@ -170,11 +178,20 @@ export class DemoInfraStack extends cdk.Stack {
     const listener = alb.addListener('HttpListener', {
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
+      defaultAction: elbv2.ListenerAction.fixedResponse(403, {
+        contentType: 'text/plain',
+        messageBody: 'Forbidden - direct ALB access not allowed',
+      }),
     });
 
+    // Only forward traffic that includes the secret header from CloudFront
     listener.addTargets('CheckoutTarget', {
       port: 8080,
       targets: [service],
+      priority: 1,
+      conditions: [
+        elbv2.ListenerCondition.httpHeader('X-Origin-Verify', [cfOriginSecret]),
+      ],
       healthCheck: {
         path: '/health',
         interval: cdk.Duration.seconds(30),
@@ -188,6 +205,9 @@ export class DemoInfraStack extends cdk.Stack {
       defaultBehavior: {
         origin: new origins.LoadBalancerV2Origin(alb, {
           protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+          customHeaders: {
+            'X-Origin-Verify': cfOriginSecret,
+          },
         }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
