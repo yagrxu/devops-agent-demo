@@ -1,0 +1,35 @@
+# terraform.tfvars.example — Copy to terraform.tfvars and fill in your values
+
+project_name = "aiops-demo"
+
+# Required: Your GitHub organization (or username) and repository name
+github_org  = "yagrxu"
+github_repo = "serverless-demo-for-aiops"
+
+# Dual-account environment configuration
+# Each environment maps to a separate AWS account
+environments = {
+  test = {
+    aws_profile       = "default"                  # AWS CLI profile for the test account
+    aws_region        = "us-east-1"
+    branch            = "test"                     # Branch that triggers deploy to test
+    environment_name  = "test"                     # GitHub Actions environment name
+    state_bucket_name = "aiops-demo-terraform-state-<TEST_ACCOUNT_ID>"
+    lock_table_name   = "aiops-demo-terraform-locks"
+  }
+  release = {
+    aws_profile       = "cloudops-demo"            # AWS CLI profile for the release/production account
+    aws_region        = "us-east-1"
+    branch            = "release"                  # Branch that triggers deploy to release
+    environment_name  = "release"                  # GitHub Actions environment name
+    state_bucket_name = "aiops-demo-terraform-state-<RELEASE_ACCOUNT_ID>"
+    lock_table_name   = "aiops-demo-terraform-locks"
+  }
+}
+
+# Common tags applied to all resources
+tags = {
+  Project     = "aiops-demo"
+  ManagedBy   = "terraform"
+  Component   = "oidc-bootstrap"
+}

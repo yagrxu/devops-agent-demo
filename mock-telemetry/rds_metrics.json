@@ -1,0 +1,860 @@
+[
+  {
+    "timestamp": "2026-06-13T14:30:00",
+    "elapsed_minutes": 0,
+    "performance_insights": {
+      "db_load": {
+        "avg": 6.94,
+        "max": 11.68
+      },
+      "wait_events": {
+        "CPU:CPU": 0.4,
+        "IO:DataFileRead": 0.3,
+        "Client:ClientRead": 0.1
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 34,
+          "calls_per_min": 521,
+          "wait_event": "CPU:CPU"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 51,
+          "calls_per_min": 518,
+          "wait_event": "LWLock:BufferMapping"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 15,
+          "calls_per_min": 2062,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 46,
+      "MaxConnections": 200,
+      "CPUUtilization": 33.34,
+      "FreeableMemory_GB": 12.28,
+      "ReadIOPS": 4916,
+      "WriteIOPS": 2086,
+      "ReadLatency_ms": 1.24,
+      "WriteLatency_ms": 2.18,
+      "NetworkReceiveThroughput_MBps": 46.4,
+      "ConnectionErrors": 0
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 24,
+        "p95_ms": 61,
+        "p99_ms": 81,
+        "sla_p99_ms": 200,
+        "sla_breached": false
+      },
+      "product_browse": {
+        "p50_ms": 12,
+        "p95_ms": 25,
+        "p99_ms": 34,
+        "sla_p99_ms": 50,
+        "sla_breached": false
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:31:00",
+    "elapsed_minutes": 1,
+    "performance_insights": {
+      "db_load": {
+        "avg": 8.67,
+        "max": 13.94
+      },
+      "wait_events": {
+        "CPU:CPU": 0.39,
+        "IO:DataFileRead": 0.31,
+        "Client:ClientRead": 0.1
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 40,
+          "calls_per_min": 447,
+          "wait_event": "CPU:CPU"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 60,
+          "calls_per_min": 455,
+          "wait_event": "LWLock:BufferMapping"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 22,
+          "calls_per_min": 2591,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 58,
+      "MaxConnections": 200,
+      "CPUUtilization": 39.12,
+      "FreeableMemory_GB": 11.87,
+      "ReadIOPS": 5741,
+      "WriteIOPS": 2305,
+      "ReadLatency_ms": 1.51,
+      "WriteLatency_ms": 2.3,
+      "NetworkReceiveThroughput_MBps": 50.96,
+      "ConnectionErrors": 0
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 31,
+        "p95_ms": 67,
+        "p99_ms": 104,
+        "sla_p99_ms": 200,
+        "sla_breached": false
+      },
+      "product_browse": {
+        "p50_ms": 14,
+        "p95_ms": 28,
+        "p99_ms": 42,
+        "sla_p99_ms": 50,
+        "sla_breached": false
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:32:00",
+    "elapsed_minutes": 2,
+    "performance_insights": {
+      "db_load": {
+        "avg": 10.28,
+        "max": 16.44
+      },
+      "wait_events": {
+        "CPU:CPU": 0.4,
+        "IO:DataFileRead": 0.3,
+        "Client:ClientRead": 0.1
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 46,
+          "calls_per_min": 443,
+          "wait_event": "CPU:CPU"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 69,
+          "calls_per_min": 429,
+          "wait_event": "LWLock:BufferMapping"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 31,
+          "calls_per_min": 2850,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 69,
+      "MaxConnections": 200,
+      "CPUUtilization": 45.17,
+      "FreeableMemory_GB": 11.65,
+      "ReadIOPS": 6759,
+      "WriteIOPS": 2440,
+      "ReadLatency_ms": 1.78,
+      "WriteLatency_ms": 2.2,
+      "NetworkReceiveThroughput_MBps": 62.0,
+      "ConnectionErrors": 0
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 33,
+        "p95_ms": 79,
+        "p99_ms": 119,
+        "sla_p99_ms": 200,
+        "sla_breached": false
+      },
+      "product_browse": {
+        "p50_ms": 18,
+        "p95_ms": 34,
+        "p99_ms": 50,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:33:00",
+    "elapsed_minutes": 3,
+    "performance_insights": {
+      "db_load": {
+        "avg": 11.59,
+        "max": 19.31
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.59,
+        "CPU:CPU": 0.19,
+        "IO:DataFileRead": 0.1
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 52,
+          "calls_per_min": 428,
+          "wait_event": "CPU:CPU"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 78,
+          "calls_per_min": 417,
+          "wait_event": "LWLock:BufferMapping"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 40,
+          "calls_per_min": 3540,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 76,
+      "MaxConnections": 200,
+      "CPUUtilization": 50.24,
+      "FreeableMemory_GB": 10.55,
+      "ReadIOPS": 7242,
+      "WriteIOPS": 2581,
+      "ReadLatency_ms": 2.12,
+      "WriteLatency_ms": 2.44,
+      "NetworkReceiveThroughput_MBps": 68.76,
+      "ConnectionErrors": 0
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 38,
+        "p95_ms": 88,
+        "p99_ms": 129,
+        "sla_p99_ms": 200,
+        "sla_breached": false
+      },
+      "product_browse": {
+        "p50_ms": 21,
+        "p95_ms": 41,
+        "p99_ms": 57,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:34:00",
+    "elapsed_minutes": 4,
+    "performance_insights": {
+      "db_load": {
+        "avg": 19.98,
+        "max": 34.8
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.74,
+        "CPU:CPU": 0.2,
+        "IO:DataFileRead": 0.1
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 122,
+          "calls_per_min": 389,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 183,
+          "calls_per_min": 386,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 45,
+          "calls_per_min": 3879,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 132,
+      "MaxConnections": 200,
+      "CPUUtilization": 53.6,
+      "FreeableMemory_GB": 10.77,
+      "ReadIOPS": 8486,
+      "WriteIOPS": 2680,
+      "ReadLatency_ms": 2.38,
+      "WriteLatency_ms": 2.53,
+      "NetworkReceiveThroughput_MBps": 74.65,
+      "ConnectionErrors": 22
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 93,
+        "p95_ms": 213,
+        "p99_ms": 297,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 24,
+        "p95_ms": 42,
+        "p99_ms": 68,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:35:00",
+    "elapsed_minutes": 5,
+    "performance_insights": {
+      "db_load": {
+        "avg": 29.03,
+        "max": 52.29
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.87,
+        "CPU:CPU": 0.08,
+        "IO:DataFileRead": 0.03
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 249,
+          "calls_per_min": 362,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 374,
+          "calls_per_min": 348,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 56,
+          "calls_per_min": 4575,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 209,
+      "MaxConnections": 200,
+      "CPUUtilization": 60.57,
+      "FreeableMemory_GB": 10.97,
+      "ReadIOPS": 9352,
+      "WriteIOPS": 3033,
+      "ReadLatency_ms": 2.76,
+      "WriteLatency_ms": 2.6,
+      "NetworkReceiveThroughput_MBps": 87.81,
+      "ConnectionErrors": 44
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 188,
+        "p95_ms": 454,
+        "p99_ms": 639,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 26,
+        "p95_ms": 48,
+        "p99_ms": 73,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:36:00",
+    "elapsed_minutes": 6,
+    "performance_insights": {
+      "db_load": {
+        "avg": 30.38,
+        "max": 48.87
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.83,
+        "CPU:CPU": 0.08,
+        "IO:DataFileRead": 0.03
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 301,
+          "calls_per_min": 314,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 452,
+          "calls_per_min": 321,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 60,
+          "calls_per_min": 4865,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 203,
+      "MaxConnections": 200,
+      "CPUUtilization": 66.34,
+      "FreeableMemory_GB": 9.76,
+      "ReadIOPS": 9709,
+      "WriteIOPS": 3213,
+      "ReadLatency_ms": 2.97,
+      "WriteLatency_ms": 2.62,
+      "NetworkReceiveThroughput_MBps": 92.26,
+      "ConnectionErrors": 55
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 235,
+        "p95_ms": 532,
+        "p99_ms": 768,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 31,
+        "p95_ms": 56,
+        "p99_ms": 82,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:37:00",
+    "elapsed_minutes": 7,
+    "performance_insights": {
+      "db_load": {
+        "avg": 29.2,
+        "max": 49.13
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.86,
+        "CPU:CPU": 0.08,
+        "IO:DataFileRead": 0.03
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 322,
+          "calls_per_min": 292,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 484,
+          "calls_per_min": 281,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 69,
+          "calls_per_min": 5464,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 179,
+      "MaxConnections": 200,
+      "CPUUtilization": 68.85,
+      "FreeableMemory_GB": 10.08,
+      "ReadIOPS": 10498,
+      "WriteIOPS": 3286,
+      "ReadLatency_ms": 3.29,
+      "WriteLatency_ms": 2.7,
+      "NetworkReceiveThroughput_MBps": 102.23,
+      "ConnectionErrors": 66
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 230,
+        "p95_ms": 558,
+        "p99_ms": 812,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 31,
+        "p95_ms": 60,
+        "p99_ms": 87,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:38:00",
+    "elapsed_minutes": 8,
+    "performance_insights": {
+      "db_load": {
+        "avg": 28.7,
+        "max": 48.4
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.89,
+        "CPU:CPU": 0.08,
+        "IO:DataFileRead": 0.03
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 345,
+          "calls_per_min": 268,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 518,
+          "calls_per_min": 253,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 75,
+          "calls_per_min": 5711,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 197,
+      "MaxConnections": 200,
+      "CPUUtilization": 75.6,
+      "FreeableMemory_GB": 9.46,
+      "ReadIOPS": 11571,
+      "WriteIOPS": 3701,
+      "ReadLatency_ms": 3.65,
+      "WriteLatency_ms": 2.97,
+      "NetworkReceiveThroughput_MBps": 113.9,
+      "ConnectionErrors": 74
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 251,
+        "p95_ms": 575,
+        "p99_ms": 833,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 34,
+        "p95_ms": 66,
+        "p99_ms": 99,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:39:00",
+    "elapsed_minutes": 9,
+    "performance_insights": {
+      "db_load": {
+        "avg": 27.84,
+        "max": 48.51
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.89,
+        "CPU:CPU": 0.08,
+        "IO:DataFileRead": 0.03
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 403,
+          "calls_per_min": 240,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 605,
+          "calls_per_min": 220,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 82,
+          "calls_per_min": 6377,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 195,
+      "MaxConnections": 200,
+      "CPUUtilization": 75.3,
+      "FreeableMemory_GB": 9.2,
+      "ReadIOPS": 12462,
+      "WriteIOPS": 3638,
+      "ReadLatency_ms": 3.97,
+      "WriteLatency_ms": 3.04,
+      "NetworkReceiveThroughput_MBps": 112.34,
+      "ConnectionErrors": 87
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 310,
+        "p95_ms": 731,
+        "p99_ms": 1019,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 37,
+        "p95_ms": 73,
+        "p99_ms": 110,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:40:00",
+    "elapsed_minutes": 10,
+    "performance_insights": {
+      "db_load": {
+        "avg": 29.12,
+        "max": 47.73
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.9,
+        "CPU:CPU": 0.08,
+        "IO:DataFileRead": 0.03
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 426,
+          "calls_per_min": 209,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 640,
+          "calls_per_min": 202,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 98,
+          "calls_per_min": 7145,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 192,
+      "MaxConnections": 200,
+      "CPUUtilization": 73.68,
+      "FreeableMemory_GB": 9.42,
+      "ReadIOPS": 12701,
+      "WriteIOPS": 4123,
+      "ReadLatency_ms": 4.22,
+      "WriteLatency_ms": 3.09,
+      "NetworkReceiveThroughput_MBps": 124.19,
+      "ConnectionErrors": 93
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 327,
+        "p95_ms": 729,
+        "p99_ms": 1104,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 43,
+        "p95_ms": 71,
+        "p99_ms": 119,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:41:00",
+    "elapsed_minutes": 11,
+    "performance_insights": {
+      "db_load": {
+        "avg": 28.45,
+        "max": 45.74
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.9,
+        "CPU:CPU": 0.08,
+        "IO:DataFileRead": 0.03
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 462,
+          "calls_per_min": 175,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 693,
+          "calls_per_min": 167,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 106,
+          "calls_per_min": 7650,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 187,
+      "MaxConnections": 200,
+      "CPUUtilization": 68.47,
+      "FreeableMemory_GB": 9.09,
+      "ReadIOPS": 13228,
+      "WriteIOPS": 4292,
+      "ReadLatency_ms": 4.49,
+      "WriteLatency_ms": 3.28,
+      "NetworkReceiveThroughput_MBps": 135.54,
+      "ConnectionErrors": 106
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 351,
+        "p95_ms": 807,
+        "p99_ms": 1188,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 43,
+        "p95_ms": 77,
+        "p99_ms": 125,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:42:00",
+    "elapsed_minutes": 12,
+    "performance_insights": {
+      "db_load": {
+        "avg": 29.19,
+        "max": 48.14
+      },
+      "wait_events": {
+        "Client:ClientRead": 0.89,
+        "CPU:CPU": 0.08,
+        "IO:DataFileRead": 0.03
+      },
+      "top_sql": [
+        {
+          "sql_id": "sql_checkout_insert",
+          "sql_text": "INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pending')",
+          "avg_latency_ms": 502,
+          "calls_per_min": 136,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_inventory_update",
+          "sql_text": "UPDATE inventory SET reserved = reserved + 1 WHERE sku = $1 AND available > reserved",
+          "avg_latency_ms": 753,
+          "calls_per_min": 136,
+          "wait_event": "Client:ClientRead"
+        },
+        {
+          "sql_id": "sql_product_select",
+          "sql_text": "SELECT p.*, pi.url FROM products p JOIN product_images pi ON p.id = pi.product_id WHERE p.id = $1",
+          "avg_latency_ms": 106,
+          "calls_per_min": 7754,
+          "wait_event": "IO:DataFileRead"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "DatabaseConnections": 186,
+      "MaxConnections": 200,
+      "CPUUtilization": 72.26,
+      "FreeableMemory_GB": 8.62,
+      "ReadIOPS": 14140,
+      "WriteIOPS": 4275,
+      "ReadLatency_ms": 4.79,
+      "WriteLatency_ms": 3.37,
+      "NetworkReceiveThroughput_MBps": 147.72,
+      "ConnectionErrors": 114
+    },
+    "transaction_latency": {
+      "checkout": {
+        "p50_ms": 377,
+        "p95_ms": 859,
+        "p99_ms": 1204,
+        "sla_p99_ms": 200,
+        "sla_breached": true
+      },
+      "product_browse": {
+        "p50_ms": 46,
+        "p95_ms": 82,
+        "p99_ms": 126,
+        "sla_p99_ms": 50,
+        "sla_breached": true
+      }
+    }
+  }
+]

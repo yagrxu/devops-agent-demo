@@ -1,0 +1,92 @@
+name: Deploy Demo Infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cdk/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Deploy or Destroy'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - destroy
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  NODE_VERSION: '20'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action != 'destroy'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: cdk/package-lock.json
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        working-directory: cdk
+        run: npm ci
+
+      - name: CDK Synth
+        working-directory: cdk
+        run: npx cdk synth
+
+      - name: CDK Deploy
+        working-directory: cdk
+        run: npx cdk deploy --all --require-approval never --outputs-file outputs.json
+
+      - name: Print outputs
+        working-directory: cdk
+        run: cat outputs.json
+
+      - name: Upload outputs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdk-outputs
+          path: cdk/outputs.json
+
+  destroy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'destroy'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: cdk/package-lock.json
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        working-directory: cdk
+        run: npm ci
+
+      - name: CDK Destroy
+        working-directory: cdk
+        run: npx cdk destroy --all --force

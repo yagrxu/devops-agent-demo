@@ -1,0 +1,1406 @@
+[
+  {
+    "timestamp": "2026-06-13T14:30:00",
+    "elapsed_minutes": 0,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 76,
+        "consume_rate_per_sec": 53,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 2,
+        "lag_sla_seconds": 30,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 2,
+            "offset_behind": 167
+          },
+          "partition-1": {
+            "lag_seconds": 2,
+            "offset_behind": 172
+          },
+          "partition-2": {
+            "lag_seconds": 2,
+            "offset_behind": 172
+          },
+          "partition-3": {
+            "lag_seconds": 2,
+            "offset_behind": 159
+          },
+          "partition-4": {
+            "lag_seconds": 2,
+            "offset_behind": 150
+          },
+          "partition-5": {
+            "lag_seconds": 2,
+            "offset_behind": 174
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 73,
+        "consume_rate_per_sec": 59,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 1,
+        "lag_sla_seconds": 60,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 1,
+            "offset_behind": 89
+          },
+          "partition-1": {
+            "lag_seconds": 1,
+            "offset_behind": 76
+          },
+          "partition-2": {
+            "lag_seconds": 1,
+            "offset_behind": 76
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 66,
+        "consume_rate_per_sec": 46,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 4,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 5,
+            "offset_behind": 297
+          },
+          "partition-1": {
+            "lag_seconds": 4,
+            "offset_behind": 328
+          },
+          "partition-2": {
+            "lag_seconds": 4,
+            "offset_behind": 303
+          },
+          "partition-3": {
+            "lag_seconds": 4,
+            "offset_behind": 318
+          },
+          "partition-4": {
+            "lag_seconds": 4,
+            "offset_behind": 344
+          },
+          "partition-5": {
+            "lag_seconds": 5,
+            "offset_behind": 309
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 25.3,
+      "network_in_mbps": 12.13,
+      "network_out_mbps": 18.43,
+      "disk_used_percent": 43.88
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:31:00",
+    "elapsed_minutes": 1,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 107,
+        "consume_rate_per_sec": 75,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 3,
+        "lag_sla_seconds": 30,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 3,
+            "offset_behind": 213
+          },
+          "partition-1": {
+            "lag_seconds": 2,
+            "offset_behind": 230
+          },
+          "partition-2": {
+            "lag_seconds": 3,
+            "offset_behind": 223
+          },
+          "partition-3": {
+            "lag_seconds": 3,
+            "offset_behind": 242
+          },
+          "partition-4": {
+            "lag_seconds": 3,
+            "offset_behind": 230
+          },
+          "partition-5": {
+            "lag_seconds": 3,
+            "offset_behind": 252
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 86,
+        "consume_rate_per_sec": 69,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 3,
+        "lag_sla_seconds": 60,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 3,
+            "offset_behind": 237
+          },
+          "partition-1": {
+            "lag_seconds": 3,
+            "offset_behind": 252
+          },
+          "partition-2": {
+            "lag_seconds": 3,
+            "offset_behind": 234
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 98,
+        "consume_rate_per_sec": 67,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 6,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 5,
+            "offset_behind": 434
+          },
+          "partition-1": {
+            "lag_seconds": 5,
+            "offset_behind": 488
+          },
+          "partition-2": {
+            "lag_seconds": 6,
+            "offset_behind": 445
+          },
+          "partition-3": {
+            "lag_seconds": 5,
+            "offset_behind": 483
+          },
+          "partition-4": {
+            "lag_seconds": 6,
+            "offset_behind": 506
+          },
+          "partition-5": {
+            "lag_seconds": 6,
+            "offset_behind": 465
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 25.87,
+      "network_in_mbps": 12.88,
+      "network_out_mbps": 19.86,
+      "disk_used_percent": 41.25
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:32:00",
+    "elapsed_minutes": 2,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 137,
+        "consume_rate_per_sec": 96,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 4,
+        "lag_sla_seconds": 30,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 4,
+            "offset_behind": 334
+          },
+          "partition-1": {
+            "lag_seconds": 4,
+            "offset_behind": 317
+          },
+          "partition-2": {
+            "lag_seconds": 4,
+            "offset_behind": 278
+          },
+          "partition-3": {
+            "lag_seconds": 4,
+            "offset_behind": 305
+          },
+          "partition-4": {
+            "lag_seconds": 4,
+            "offset_behind": 332
+          },
+          "partition-5": {
+            "lag_seconds": 3,
+            "offset_behind": 312
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 99,
+        "consume_rate_per_sec": 80,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 5,
+        "lag_sla_seconds": 60,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 5,
+            "offset_behind": 412
+          },
+          "partition-1": {
+            "lag_seconds": 5,
+            "offset_behind": 401
+          },
+          "partition-2": {
+            "lag_seconds": 5,
+            "offset_behind": 427
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 127,
+        "consume_rate_per_sec": 81,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 8,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 7,
+            "offset_behind": 669
+          },
+          "partition-1": {
+            "lag_seconds": 8,
+            "offset_behind": 620
+          },
+          "partition-2": {
+            "lag_seconds": 8,
+            "offset_behind": 591
+          },
+          "partition-3": {
+            "lag_seconds": 7,
+            "offset_behind": 672
+          },
+          "partition-4": {
+            "lag_seconds": 7,
+            "offset_behind": 616
+          },
+          "partition-5": {
+            "lag_seconds": 9,
+            "offset_behind": 633
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 29.12,
+      "network_in_mbps": 14.87,
+      "network_out_mbps": 21.31,
+      "disk_used_percent": 41.42
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:33:00",
+    "elapsed_minutes": 3,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 82,
+        "consume_rate_per_sec": 57,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 5,
+        "lag_sla_seconds": 30,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 5,
+            "offset_behind": 439
+          },
+          "partition-1": {
+            "lag_seconds": 5,
+            "offset_behind": 420
+          },
+          "partition-2": {
+            "lag_seconds": 4,
+            "offset_behind": 443
+          },
+          "partition-3": {
+            "lag_seconds": 5,
+            "offset_behind": 383
+          },
+          "partition-4": {
+            "lag_seconds": 5,
+            "offset_behind": 408
+          },
+          "partition-5": {
+            "lag_seconds": 5,
+            "offset_behind": 371
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 108,
+        "consume_rate_per_sec": 86,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 7,
+        "lag_sla_seconds": 60,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 8,
+            "offset_behind": 588
+          },
+          "partition-1": {
+            "lag_seconds": 7,
+            "offset_behind": 501
+          },
+          "partition-2": {
+            "lag_seconds": 7,
+            "offset_behind": 543
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 75,
+        "consume_rate_per_sec": 49,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 10,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 11,
+            "offset_behind": 887
+          },
+          "partition-1": {
+            "lag_seconds": 9,
+            "offset_behind": 817
+          },
+          "partition-2": {
+            "lag_seconds": 10,
+            "offset_behind": 877
+          },
+          "partition-3": {
+            "lag_seconds": 10,
+            "offset_behind": 871
+          },
+          "partition-4": {
+            "lag_seconds": 11,
+            "offset_behind": 773
+          },
+          "partition-5": {
+            "lag_seconds": 11,
+            "offset_behind": 795
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 32.35,
+      "network_in_mbps": 16.51,
+      "network_out_mbps": 24.77,
+      "disk_used_percent": 41.09
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:34:00",
+    "elapsed_minutes": 4,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 47,
+        "consume_rate_per_sec": 33,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 30,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 27,
+            "offset_behind": 2439
+          },
+          "partition-1": {
+            "lag_seconds": 29,
+            "offset_behind": 2445
+          },
+          "partition-2": {
+            "lag_seconds": 31,
+            "offset_behind": 2399
+          },
+          "partition-3": {
+            "lag_seconds": 29,
+            "offset_behind": 2270
+          },
+          "partition-4": {
+            "lag_seconds": 32,
+            "offset_behind": 2455
+          },
+          "partition-5": {
+            "lag_seconds": 28,
+            "offset_behind": 2554
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 79,
+        "consume_rate_per_sec": 63,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 8,
+        "lag_sla_seconds": 60,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 7,
+            "offset_behind": 670
+          },
+          "partition-1": {
+            "lag_seconds": 8,
+            "offset_behind": 679
+          },
+          "partition-2": {
+            "lag_seconds": 8,
+            "offset_behind": 660
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 43,
+        "consume_rate_per_sec": 29,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 64,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 52,
+            "offset_behind": 4843
+          },
+          "partition-1": {
+            "lag_seconds": 62,
+            "offset_behind": 5199
+          },
+          "partition-2": {
+            "lag_seconds": 67,
+            "offset_behind": 4783
+          },
+          "partition-3": {
+            "lag_seconds": 61,
+            "offset_behind": 4799
+          },
+          "partition-4": {
+            "lag_seconds": 65,
+            "offset_behind": 4754
+          },
+          "partition-5": {
+            "lag_seconds": 63,
+            "offset_behind": 4506
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 32.9,
+      "network_in_mbps": 18.84,
+      "network_out_mbps": 25.58,
+      "disk_used_percent": 42.81
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:35:00",
+    "elapsed_minutes": 5,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 51,
+        "consume_rate_per_sec": 36,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 57,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 55,
+            "offset_behind": 4387
+          },
+          "partition-1": {
+            "lag_seconds": 61,
+            "offset_behind": 4790
+          },
+          "partition-2": {
+            "lag_seconds": 63,
+            "offset_behind": 4131
+          },
+          "partition-3": {
+            "lag_seconds": 50,
+            "offset_behind": 4673
+          },
+          "partition-4": {
+            "lag_seconds": 64,
+            "offset_behind": 5007
+          },
+          "partition-5": {
+            "lag_seconds": 61,
+            "offset_behind": 4494
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 52,
+        "consume_rate_per_sec": 41,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 29,
+        "lag_sla_seconds": 60,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 26,
+            "offset_behind": 2382
+          },
+          "partition-1": {
+            "lag_seconds": 32,
+            "offset_behind": 2294
+          },
+          "partition-2": {
+            "lag_seconds": 31,
+            "offset_behind": 2508
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 44,
+        "consume_rate_per_sec": 31,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 117,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 110,
+            "offset_behind": 8463
+          },
+          "partition-1": {
+            "lag_seconds": 115,
+            "offset_behind": 9228
+          },
+          "partition-2": {
+            "lag_seconds": 124,
+            "offset_behind": 8507
+          },
+          "partition-3": {
+            "lag_seconds": 99,
+            "offset_behind": 9784
+          },
+          "partition-4": {
+            "lag_seconds": 118,
+            "offset_behind": 8636
+          },
+          "partition-5": {
+            "lag_seconds": 128,
+            "offset_behind": 8458
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 34.86,
+      "network_in_mbps": 19.02,
+      "network_out_mbps": 27.31,
+      "disk_used_percent": 39.94
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:36:00",
+    "elapsed_minutes": 6,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 36,
+        "consume_rate_per_sec": 25,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 73,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 72,
+            "offset_behind": 5644
+          },
+          "partition-1": {
+            "lag_seconds": 75,
+            "offset_behind": 5986
+          },
+          "partition-2": {
+            "lag_seconds": 71,
+            "offset_behind": 5533
+          },
+          "partition-3": {
+            "lag_seconds": 80,
+            "offset_behind": 5474
+          },
+          "partition-4": {
+            "lag_seconds": 70,
+            "offset_behind": 5805
+          },
+          "partition-5": {
+            "lag_seconds": 67,
+            "offset_behind": 5908
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 52,
+        "consume_rate_per_sec": 42,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 46,
+        "lag_sla_seconds": 60,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 47,
+            "offset_behind": 4074
+          },
+          "partition-1": {
+            "lag_seconds": 44,
+            "offset_behind": 4063
+          },
+          "partition-2": {
+            "lag_seconds": 49,
+            "offset_behind": 3541
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 33,
+        "consume_rate_per_sec": 22,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 157,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 126,
+            "offset_behind": 11897
+          },
+          "partition-1": {
+            "lag_seconds": 145,
+            "offset_behind": 12591
+          },
+          "partition-2": {
+            "lag_seconds": 136,
+            "offset_behind": 12345
+          },
+          "partition-3": {
+            "lag_seconds": 150,
+            "offset_behind": 11305
+          },
+          "partition-4": {
+            "lag_seconds": 152,
+            "offset_behind": 11931
+          },
+          "partition-5": {
+            "lag_seconds": 153,
+            "offset_behind": 12164
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 37.59,
+      "network_in_mbps": 21.71,
+      "network_out_mbps": 30.38,
+      "disk_used_percent": 43.69
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:37:00",
+    "elapsed_minutes": 7,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 20,
+        "consume_rate_per_sec": 14,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 83,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 89,
+            "offset_behind": 6123
+          },
+          "partition-1": {
+            "lag_seconds": 78,
+            "offset_behind": 7000
+          },
+          "partition-2": {
+            "lag_seconds": 75,
+            "offset_behind": 6179
+          },
+          "partition-3": {
+            "lag_seconds": 84,
+            "offset_behind": 7299
+          },
+          "partition-4": {
+            "lag_seconds": 84,
+            "offset_behind": 7222
+          },
+          "partition-5": {
+            "lag_seconds": 92,
+            "offset_behind": 6346
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 39,
+        "consume_rate_per_sec": 31,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 59,
+        "lag_sla_seconds": 60,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 65,
+            "offset_behind": 4740
+          },
+          "partition-1": {
+            "lag_seconds": 65,
+            "offset_behind": 4992
+          },
+          "partition-2": {
+            "lag_seconds": 57,
+            "offset_behind": 4391
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 19,
+        "consume_rate_per_sec": 12,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 183,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 185,
+            "offset_behind": 13939
+          },
+          "partition-1": {
+            "lag_seconds": 191,
+            "offset_behind": 14587
+          },
+          "partition-2": {
+            "lag_seconds": 182,
+            "offset_behind": 12982
+          },
+          "partition-3": {
+            "lag_seconds": 181,
+            "offset_behind": 12043
+          },
+          "partition-4": {
+            "lag_seconds": 169,
+            "offset_behind": 13220
+          },
+          "partition-5": {
+            "lag_seconds": 175,
+            "offset_behind": 13800
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 39.33,
+      "network_in_mbps": 23.23,
+      "network_out_mbps": 33.41,
+      "disk_used_percent": 40.36
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:38:00",
+    "elapsed_minutes": 8,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 8,
+        "consume_rate_per_sec": 5,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 86,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 96,
+            "offset_behind": 6476
+          },
+          "partition-1": {
+            "lag_seconds": 74,
+            "offset_behind": 7302
+          },
+          "partition-2": {
+            "lag_seconds": 96,
+            "offset_behind": 6587
+          },
+          "partition-3": {
+            "lag_seconds": 83,
+            "offset_behind": 6364
+          },
+          "partition-4": {
+            "lag_seconds": 97,
+            "offset_behind": 6590
+          },
+          "partition-5": {
+            "lag_seconds": 86,
+            "offset_behind": 6305
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 28,
+        "consume_rate_per_sec": 22,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 70,
+        "lag_sla_seconds": 60,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 79,
+            "offset_behind": 5223
+          },
+          "partition-1": {
+            "lag_seconds": 69,
+            "offset_behind": 5826
+          },
+          "partition-2": {
+            "lag_seconds": 76,
+            "offset_behind": 6136
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 7,
+        "consume_rate_per_sec": 5,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 174,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 167,
+            "offset_behind": 12616
+          },
+          "partition-1": {
+            "lag_seconds": 171,
+            "offset_behind": 13464
+          },
+          "partition-2": {
+            "lag_seconds": 195,
+            "offset_behind": 12434
+          },
+          "partition-3": {
+            "lag_seconds": 165,
+            "offset_behind": 13561
+          },
+          "partition-4": {
+            "lag_seconds": 195,
+            "offset_behind": 14691
+          },
+          "partition-5": {
+            "lag_seconds": 151,
+            "offset_behind": 14226
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 41.18,
+      "network_in_mbps": 25.15,
+      "network_out_mbps": 33.52,
+      "disk_used_percent": 41.57
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:39:00",
+    "elapsed_minutes": 9,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 8,
+        "consume_rate_per_sec": 5,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 87,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 91,
+            "offset_behind": 7124
+          },
+          "partition-1": {
+            "lag_seconds": 89,
+            "offset_behind": 6264
+          },
+          "partition-2": {
+            "lag_seconds": 94,
+            "offset_behind": 6572
+          },
+          "partition-3": {
+            "lag_seconds": 77,
+            "offset_behind": 7017
+          },
+          "partition-4": {
+            "lag_seconds": 75,
+            "offset_behind": 7295
+          },
+          "partition-5": {
+            "lag_seconds": 79,
+            "offset_behind": 6534
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 16,
+        "consume_rate_per_sec": 12,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 75,
+        "lag_sla_seconds": 60,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 83,
+            "offset_behind": 5768
+          },
+          "partition-1": {
+            "lag_seconds": 67,
+            "offset_behind": 6451
+          },
+          "partition-2": {
+            "lag_seconds": 64,
+            "offset_behind": 6400
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 7,
+        "consume_rate_per_sec": 4,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 177,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 156,
+            "offset_behind": 14302
+          },
+          "partition-1": {
+            "lag_seconds": 149,
+            "offset_behind": 12511
+          },
+          "partition-2": {
+            "lag_seconds": 188,
+            "offset_behind": 13129
+          },
+          "partition-3": {
+            "lag_seconds": 164,
+            "offset_behind": 12953
+          },
+          "partition-4": {
+            "lag_seconds": 150,
+            "offset_behind": 14525
+          },
+          "partition-5": {
+            "lag_seconds": 175,
+            "offset_behind": 14536
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 42.9,
+      "network_in_mbps": 26.21,
+      "network_out_mbps": 36.05,
+      "disk_used_percent": 40.36
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:40:00",
+    "elapsed_minutes": 10,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 8,
+        "consume_rate_per_sec": 6,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 94,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 104,
+            "offset_behind": 7553
+          },
+          "partition-1": {
+            "lag_seconds": 93,
+            "offset_behind": 8218
+          },
+          "partition-2": {
+            "lag_seconds": 82,
+            "offset_behind": 7489
+          },
+          "partition-3": {
+            "lag_seconds": 91,
+            "offset_behind": 7800
+          },
+          "partition-4": {
+            "lag_seconds": 94,
+            "offset_behind": 8137
+          },
+          "partition-5": {
+            "lag_seconds": 82,
+            "offset_behind": 6890
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 11,
+        "consume_rate_per_sec": 9,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 77,
+        "lag_sla_seconds": 60,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 80,
+            "offset_behind": 5633
+          },
+          "partition-1": {
+            "lag_seconds": 72,
+            "offset_behind": 6333
+          },
+          "partition-2": {
+            "lag_seconds": 78,
+            "offset_behind": 5953
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 8,
+        "consume_rate_per_sec": 5,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 197,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 194,
+            "offset_behind": 13835
+          },
+          "partition-1": {
+            "lag_seconds": 199,
+            "offset_behind": 16102
+          },
+          "partition-2": {
+            "lag_seconds": 197,
+            "offset_behind": 15850
+          },
+          "partition-3": {
+            "lag_seconds": 200,
+            "offset_behind": 14184
+          },
+          "partition-4": {
+            "lag_seconds": 185,
+            "offset_behind": 14224
+          },
+          "partition-5": {
+            "lag_seconds": 179,
+            "offset_behind": 14901
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 44.62,
+      "network_in_mbps": 25.91,
+      "network_out_mbps": 37.72,
+      "disk_used_percent": 42.69
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:41:00",
+    "elapsed_minutes": 11,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 8,
+        "consume_rate_per_sec": 6,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 87,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 96,
+            "offset_behind": 6384
+          },
+          "partition-1": {
+            "lag_seconds": 76,
+            "offset_behind": 7281
+          },
+          "partition-2": {
+            "lag_seconds": 95,
+            "offset_behind": 7027
+          },
+          "partition-3": {
+            "lag_seconds": 89,
+            "offset_behind": 7035
+          },
+          "partition-4": {
+            "lag_seconds": 82,
+            "offset_behind": 6424
+          },
+          "partition-5": {
+            "lag_seconds": 83,
+            "offset_behind": 7179
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 13,
+        "consume_rate_per_sec": 10,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 72,
+        "lag_sla_seconds": 60,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 77,
+            "offset_behind": 6162
+          },
+          "partition-1": {
+            "lag_seconds": 77,
+            "offset_behind": 6277
+          },
+          "partition-2": {
+            "lag_seconds": 74,
+            "offset_behind": 5569
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 7,
+        "consume_rate_per_sec": 5,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 185,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 159,
+            "offset_behind": 12810
+          },
+          "partition-1": {
+            "lag_seconds": 192,
+            "offset_behind": 13531
+          },
+          "partition-2": {
+            "lag_seconds": 187,
+            "offset_behind": 14105
+          },
+          "partition-3": {
+            "lag_seconds": 190,
+            "offset_behind": 14858
+          },
+          "partition-4": {
+            "lag_seconds": 198,
+            "offset_behind": 14784
+          },
+          "partition-5": {
+            "lag_seconds": 180,
+            "offset_behind": 14295
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 44.77,
+      "network_in_mbps": 29.72,
+      "network_out_mbps": 41.32,
+      "disk_used_percent": 41.02
+    }
+  },
+  {
+    "timestamp": "2026-06-13T14:42:00",
+    "elapsed_minutes": 12,
+    "topics": {
+      "order.placed": {
+        "produce_rate_per_sec": 8,
+        "consume_rate_per_sec": 5,
+        "consumer_group": "reconciler-cg",
+        "lag_seconds": 92,
+        "lag_sla_seconds": 30,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 78,
+            "offset_behind": 7888
+          },
+          "partition-1": {
+            "lag_seconds": 94,
+            "offset_behind": 7199
+          },
+          "partition-2": {
+            "lag_seconds": 82,
+            "offset_behind": 7541
+          },
+          "partition-3": {
+            "lag_seconds": 79,
+            "offset_behind": 7707
+          },
+          "partition-4": {
+            "lag_seconds": 84,
+            "offset_behind": 7227
+          },
+          "partition-5": {
+            "lag_seconds": 87,
+            "offset_behind": 7154
+          }
+        },
+        "consumer_instances": 3,
+        "rebalance_events": []
+      },
+      "payment.proc": {
+        "produce_rate_per_sec": 12,
+        "consume_rate_per_sec": 9,
+        "consumer_group": "notifier-cg",
+        "lag_seconds": 74,
+        "lag_sla_seconds": 60,
+        "sla_breached": true,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 79,
+            "offset_behind": 6230
+          },
+          "partition-1": {
+            "lag_seconds": 75,
+            "offset_behind": 5413
+          },
+          "partition-2": {
+            "lag_seconds": 64,
+            "offset_behind": 5499
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      },
+      "inv.reserved": {
+        "produce_rate_per_sec": 7,
+        "consume_rate_per_sec": 5,
+        "consumer_group": "analytics-cg",
+        "lag_seconds": 188,
+        "lag_sla_seconds": 300,
+        "sla_breached": false,
+        "partitions": {
+          "partition-0": {
+            "lag_seconds": 193,
+            "offset_behind": 14649
+          },
+          "partition-1": {
+            "lag_seconds": 180,
+            "offset_behind": 14024
+          },
+          "partition-2": {
+            "lag_seconds": 198,
+            "offset_behind": 13556
+          },
+          "partition-3": {
+            "lag_seconds": 180,
+            "offset_behind": 14054
+          },
+          "partition-4": {
+            "lag_seconds": 193,
+            "offset_behind": 14651
+          },
+          "partition-5": {
+            "lag_seconds": 193,
+            "offset_behind": 13355
+          }
+        },
+        "consumer_instances": 2,
+        "rebalance_events": []
+      }
+    },
+    "broker_metrics": {
+      "cpu_percent": 48.49,
+      "network_in_mbps": 30.3,
+      "network_out_mbps": 39.93,
+      "disk_used_percent": 41.17
+    }
+  }
+]

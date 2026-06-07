@@ -1,0 +1,10 @@
+node_modules/
+dist/
+cdk.out/
+.DS_Store
+~$*
+*.tmp
+outputs.json
+__pycache__/
+*.pyc
+.env

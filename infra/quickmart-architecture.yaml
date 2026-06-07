@@ -1,0 +1,145 @@
+# QuickMart Reference Architecture
+# This is documentation-only — shows what would be deployed in a real environment.
+# Used as context for the demo narrative.
+
+---
+# ECS Services
+services:
+  checkout-svc:
+    type: ECS Fargate
+    cpu: 2048
+    memory: 4096
+    desired_count: 6
+    dependencies:
+      - quickmart-prod-redis (session, cache, locks)
+      - quickmart-prod-aurora-pg (orders, inventory)
+      - quickmart-prod-msk (producer: order.placed, inv.reserved)
+    health_check: /health
+    port: 8080
+
+  payment-svc:
+    type: ECS Fargate
+    cpu: 1024
+    memory: 2048
+    desired_count: 3
+    dependencies:
+      - quickmart-prod-aurora-pg (payments, refunds)
+      - quickmart-prod-msk (producer: payment.proc)
+    health_check: /health
+    port: 8081
+
+  reconciler:
+    type: ECS Fargate
+    cpu: 1024
+    memory: 2048
+    desired_count: 3
+    dependencies:
+      - quickmart-prod-aurora-pg (orders, payments)
+      - quickmart-prod-msk (consumer: reconciler-cg on order.placed)
+    health_check: /health
+    port: 8082
+
+  notifier:
+    type: ECS Fargate
+    cpu: 512
+    memory: 1024
+    desired_count: 2
+    dependencies:
+      - quickmart-prod-msk (consumer: notifier-cg on payment.proc)
+      - SES (email delivery)
+    health_check: /health
+    port: 8083
+
+  analytics:
+    type: ECS Fargate
+    cpu: 512
+    memory: 1024
+    desired_count: 2
+    dependencies:
+      - quickmart-prod-msk (consumer: analytics-cg on inv.reserved)
+      - quickmart-prod-aurora-pg (read replica: analytics queries)
+    health_check: /health
+    port: 8084
+
+# Data Stores
+datastores:
+  quickmart-prod-redis:
+    service: ElastiCache
+    engine: Redis 7.1
+    node_type: cache.r7g.xlarge
+    num_nodes: 3  # 1 primary + 2 replicas
+    memory: 26GB per node
+    maxmemory_policy: volatile-lfu
+    multi_az: true
+    encryption_at_rest: true
+    encryption_in_transit: true
+
+  quickmart-prod-aurora-pg:
+    service: Aurora PostgreSQL
+    engine_version: "15.4"
+    instance_class: db.r6g.2xlarge
+    instances: 2  # 1 writer + 1 reader
+    storage: Aurora IO-Optimized
+    max_connections: 200
+    multi_az: true
+    encryption: true
+    performance_insights: enabled
+    enhanced_monitoring: 15s interval
+
+  quickmart-prod-msk:
+    service: MSK
+    kafka_version: "3.6.0"
+    broker_count: 3
+    broker_type: kafka.m7g.large
+    ebs_volume_gb: 500
+    encryption: TLS
+    topics:
+      - name: order.placed
+        partitions: 6
+        replication_factor: 3
+        retention_hours: 168
+      - name: payment.proc
+        partitions: 3
+        replication_factor: 3
+        retention_hours: 168
+      - name: inv.reserved
+        partitions: 6
+        replication_factor: 3
+        retention_hours: 72
+
+# Networking
+networking:
+  vpc: quickmart-prod-vpc
+  region: ap-east-1  # Hong Kong
+  azs: [ap-east-1a, ap-east-1b, ap-east-1c]
+  private_subnets: 3 (one per AZ for ECS, data stores)
+  public_subnets: 3 (ALB)
+  nat_gateways: 3 (HA)
+
+# Monitoring
+monitoring:
+  cloudwatch:
+    dashboards: [quickmart-overview, checkout-flow, data-stores]
+    alarms:
+      - name: checkout-p99-high
+        metric: p99 latency
+        threshold: 500ms
+        period: 60s
+        evaluation_periods: 3
+        action: SNS → PagerDuty → Slack
+      - name: redis-evictions-high
+        metric: Evictions
+        threshold: 1000/min
+        period: 60s
+        evaluation_periods: 2
+        action: SNS → Slack
+      - name: msk-consumer-lag-high
+        metric: MaxOffsetLag
+        threshold: 30s
+        period: 60s
+        evaluation_periods: 3
+        action: SNS → PagerDuty → Slack
+  xray:
+    enabled: true
+    sampling_rate: 5%
+  container_insights: enabled

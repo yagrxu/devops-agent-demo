@@ -1,0 +1,325 @@
+# Flash Sale Cascade Scenario
+# A single event (10x traffic spike) creates correlated failures across Redis, RDS, and MSK.
+
+scenario:
+  name: "QuickMart Flash Sale Cascade"
+  description: "Flash sale traffic spike causes Redis lock contention → cache eviction → RDS connection storm → MSK consumer lag"
+  duration_minutes: 12
+  business_context:
+    company: "QuickMart"
+    event: "Summer Flash Sale (60% off electronics)"
+    normal_rps: 500
+    spike_rps: 5000
+    business_window: "09:00-23:00 HKT"
+    demo_time: "14:30 HKT (within business window)"
+
+# --- Infrastructure Configuration ---
+infrastructure:
+  redis:
+    cluster_id: "quickmart-prod-redis"
+    engine_version: "7.1"
+    node_type: "cache.r7g.xlarge"
+    max_memory: "26GB"
+    maxmemory_policy: "volatile-lfu"
+    keyspaces:
+      - prefix: "session:*"
+        purpose: "session"
+        eviction_acceptable: false
+        ttl_expected_seconds: 3600
+        cold_start_cost: "user logout, forced re-login"
+        baseline_key_count: 45000
+      - prefix: "cache:product:*"
+        purpose: "cache"
+        eviction_acceptable: true
+        ttl_expected_seconds: 300
+        cold_start_cost: "10x DB query load for product catalog"
+        baseline_key_count: 120000
+      - prefix: "lock:inv:*"
+        purpose: "lock"
+        eviction_acceptable: false
+        ttl_expected_seconds: 5  # SHOULD be 5s, but misconfigured to 30s
+        cold_start_cost: "duplicate inventory reservations"
+        baseline_key_count: 200
+      - prefix: "cart:*"
+        purpose: "cache"
+        eviction_acceptable: true
+        ttl_expected_seconds: 1800
+        cold_start_cost: "user must re-add items to cart"
+        baseline_key_count: 30000
+    forbidden_mitigations:
+      - "never restart during 09:00-23:00 HKT"
+      - "never FLUSHALL or FLUSHDB"
+    recent_changes:
+      - date: "2026-05-28"
+        change: "lock:inv:* TTL changed from 5s to 30s (ticket QUICK-4421: reduce lock acquisition retries)"
+        author: "dev-team"
+
+  rds:
+    db_identifier: "quickmart-prod-aurora-pg"
+    engine: "aurora-postgresql"
+    engine_version: "15.4"
+    instance_class: "db.r6g.2xlarge"
+    max_connections: 200
+    critical_transactions:
+      - name: "checkout"
+        tables: ["orders", "order_items", "inventory"]
+        sla_p99_ms: 200
+        business_window: "09:00-23:00 HKT daily"
+      - name: "product_browse"
+        tables: ["products", "product_images"]
+        sla_p99_ms: 50
+        business_window: "always"
+      - name: "payment_reconciliation"
+        tables: ["orders", "payments", "refunds"]
+        sla_p99_ms: 500
+        business_window: "00:00-06:00 HKT (batch)"
+    forbidden_mitigations:
+      - "no failover 09:00-23:00 HKT (business hours)"
+      - "no parameter group changes without DBA approval"
+    amplifiers:
+      - "checkout-svc retries failed DB calls 3x with 100ms backoff"
+      - "product cache miss triggers synchronous DB query (no circuit breaker)"
+    recent_changes: []  # No DB changes in 14 days
+
+  msk:
+    cluster_arn: "arn:aws:kafka:ap-east-1:123456789012:cluster/quickmart-prod/abc-123"
+    topics:
+      - name: "order.placed"
+        consumer_group: "reconciler-cg"
+        lag_sla_seconds: 30
+        downstream_business_impact: "payment processing delayed → customer charged late"
+        key_field: "order_id"
+        baseline_produce_rate_per_sec: 80
+      - name: "payment.proc"
+        consumer_group: "notifier-cg"
+        lag_sla_seconds: 60
+        downstream_business_impact: "order confirmation email delayed"
+        key_field: "payment_id"
+        baseline_produce_rate_per_sec: 75
+      - name: "inv.reserved"
+        consumer_group: "analytics-cg"
+        lag_sla_seconds: 300
+        downstream_business_impact: "analytics dashboard stale (low priority)"
+        key_field: "sku"
+        baseline_produce_rate_per_sec: 80
+    producer_services:
+      - name: "checkout-svc"
+        topics: ["order.placed", "inv.reserved"]
+        baseline_rate: 80
+      - name: "payment-svc"
+        topics: ["payment.proc"]
+        baseline_rate: 75
+    rebalance_blackouts:
+      - window: "09:00-23:00 HKT"
+        reason: "rebalance during peak = 30s consumer pause = SLA breach"
+    recent_changes: []
+    known_burst_patterns:
+      - pattern: "flash sale: 5-10x produce rate for 2-4 hours"
+        expected_lag_behavior: "lag may spike to 10s, should recover within 2 minutes"
+
+# --- Timeline ---
+timeline:
+  - time: "T+0"
+    elapsed_min: 0
+    event: "Flash sale starts"
+    metrics:
+      rps: 5000
+      redis_ops_per_sec: 25000
+      redis_lock_inv_keys: 200
+      redis_used_memory_gb: 18.2
+      redis_evictions_per_min: 0
+      rds_connections_active: 45
+      rds_checkout_p99_ms: 85
+      msk_order_placed_lag_sec: 2
+      msk_payment_proc_lag_sec: 1
+
+  - time: "T+2m"
+    elapsed_min: 2
+    event: "Redis lock contention begins"
+    metrics:
+      rps: 5000
+      redis_ops_per_sec: 48000
+      redis_lock_inv_keys: 4800  # 30s TTL × 160 locks/sec = accumulation
+      redis_used_memory_gb: 22.1
+      redis_evictions_per_min: 0
+      rds_connections_active: 52
+      rds_checkout_p99_ms: 95
+      msk_order_placed_lag_sec: 3
+      msk_payment_proc_lag_sec: 2
+
+  - time: "T+3m"
+    elapsed_min: 3
+    event: "Redis evictions begin (memory pressure from lock accumulation)"
+    metrics:
+      rps: 5000
+      redis_ops_per_sec: 52000
+      redis_lock_inv_keys: 7200
+      redis_used_memory_gb: 25.4
+      redis_evictions_per_min: 1200
+      redis_cache_product_evicted: 850
+      rds_connections_active: 78
+      rds_checkout_p99_ms: 130
+      msk_order_placed_lag_sec: 5
+      msk_payment_proc_lag_sec: 3
+
+  - time: "T+4m"
+    elapsed_min: 4
+    event: "RDS connection spike (cache misses → direct DB hits)"
+    metrics:
+      rps: 5000
+      redis_ops_per_sec: 55000
+      redis_lock_inv_keys: 9500
+      redis_used_memory_gb: 25.8
+      redis_evictions_per_min: 2800
+      redis_cache_product_evicted: 2100
+      rds_connections_active: 165
+      rds_checkout_p99_ms: 280
+      rds_wait_event_dominant: "Client:ClientRead"
+      msk_order_placed_lag_sec: 12
+      msk_payment_proc_lag_sec: 8
+
+  - time: "T+5m"
+    elapsed_min: 5
+    event: "Checkout SLA breached"
+    metrics:
+      rps: 4200  # starting to fail, fewer completions
+      redis_ops_per_sec: 53000
+      redis_lock_inv_keys: 11000
+      redis_used_memory_gb: 25.9
+      redis_evictions_per_min: 3200
+      rds_connections_active: 198
+      rds_checkout_p99_ms: 480
+      rds_wait_event_dominant: "Client:ClientRead"
+      rds_connection_errors: 12
+      msk_order_placed_lag_sec: 28
+      msk_order_placed_produce_rate: 15  # dropped from 80
+      msk_payment_proc_lag_sec: 22
+
+  - time: "T+6m"
+    elapsed_min: 6
+    event: "MSK lag SLA breached, producer rate collapsed"
+    metrics:
+      rps: 3800
+      redis_ops_per_sec: 50000
+      redis_lock_inv_keys: 12000
+      redis_used_memory_gb: 25.9
+      redis_evictions_per_min: 3500
+      rds_connections_active: 200  # maxed out
+      rds_checkout_p99_ms: 650
+      rds_wait_event_dominant: "Client:ClientRead"
+      rds_connection_errors: 45
+      msk_order_placed_lag_sec: 55
+      msk_order_placed_produce_rate: 8
+      msk_payment_proc_lag_sec: 48
+
+  - time: "T+8m"
+    elapsed_min: 8
+    event: "Alert fires → DevOps Agent investigation begins"
+    alert:
+      source: "CloudWatch Alarm"
+      message: "checkout-svc p99 latency > 500ms for 3 consecutive minutes"
+      severity: "CRITICAL"
+      affected_service: "checkout-svc"
+    metrics:
+      rps: 3200
+      redis_lock_inv_keys: 14000
+      redis_used_memory_gb: 25.9
+      redis_evictions_per_min: 4000
+      rds_connections_active: 200
+      rds_checkout_p99_ms: 820
+      msk_order_placed_lag_sec: 85
+      msk_payment_proc_lag_sec: 70
+
+# --- Expected Agent Investigation ---
+investigation:
+  act_1_redis:
+    skill: "redis-keyspace-business-map"
+    trigger: "Eviction rate > 1000/min affecting product cache"
+    key_findings:
+      - "lock:inv:* keyspace has grown from 200 to 14000 keys (70x)"
+      - "TTL audit: lock:inv:* has 30s TTL (recent change on 2026-05-28 increased from 5s)"
+      - "Accumulation rate (160/sec create) > expiry rate (47/sec TTL expire) under load"
+      - "This is pushing evictions onto cache:product:* (eviction_acceptable but cold_start_cost = 10x DB load)"
+      - "session:* NOT affected (different eviction class)"
+    root_cause: "lock:inv:* TTL too long (30s) for flash-sale concurrency. Change on 2026-05-28 introduced this regression."
+    recommendation:
+      - action: "Reduce lock:inv:* TTL from 30s to 5s (revert 2026-05-28 change)"
+        reversibility: "high (can increase again)"
+        risk: "low (original value was 5s, worked under previous flash sales)"
+      - action: "DO NOT restart Redis (forbidden during business hours)"
+        type: "forbidden_mitigation_flagged"
+
+  act_2_rds:
+    skill: "rds-business-critical-slowdown"
+    trigger: "checkout p99 = 820ms (SLA: 200ms)"
+    key_findings:
+      - "Checkout transaction (orders, order_items, inventory) is degraded"
+      - "Within business window (14:30 HKT) → P1"
+      - "Wait event: Client:ClientRead (87% of wait time) → connection pool exhaustion"
+      - "Active connections: 200/200 (max_connections reached)"
+      - "No recent DB changes in 14 days — not a schema/parameter regression"
+      - "Amplifier active: cache miss storm from Redis (10x product queries hitting DB directly)"
+      - "Amplifier active: checkout-svc 3x retry with 100ms backoff (making it worse)"
+    root_cause: "Upstream Redis cache eviction causing cache miss storm → exhausting RDS connection pool"
+    recommendation:
+      - action: "Fix Redis lock TTL (upstream fix from Act 1) — will reduce cache misses"
+        reversibility: "high"
+        priority: 1
+      - action: "If not resolved in 5 min: temporarily increase max_connections to 400"
+        reversibility: "high (parameter group change, no restart needed for Aurora)"
+        priority: 2
+        note: "Treats symptom not cause — use only as bridge"
+      - action: "DO NOT failover (forbidden during business hours)"
+        type: "forbidden_mitigation_flagged"
+
+  act_3_msk:
+    skill: "msk-business-topic-lag"
+    trigger: "order.placed lag = 85s (SLA: 30s), payment.proc lag = 70s (SLA: 60s)"
+    key_findings:
+      - "order.placed produce rate dropped from 80/s to 8/s (90% drop)"
+      - "Drop correlates with checkout-svc throughput collapse (same service is producer)"
+      - "reconciler consumer throughput also dropped — shares Aurora connection pool with checkout-svc"
+      - "No rebalance events detected (good — within blackout window)"
+      - "Partition distribution: lag uniform across 6 partitions (not partition skew)"
+      - "Known burst pattern: flash sale expected to spike produce rate, NOT decrease it — confirms abnormal behavior"
+    root_cause: "Upstream starvation — checkout-svc can't produce because it's blocked on DB connections. Consumer also blocked for same reason."
+    recommendation:
+      - action: "Resolve RDS connection issue (upstream fix from Act 2)"
+        reversibility: "n/a (upstream)"
+        priority: 1
+      - action: "If lag doesn't burn down within 10 min post-fix: scale reconciler-cg consumers from 3 to 6"
+        reversibility: "high (scale back down after)"
+        priority: 2
+      - action: "DO NOT trigger rebalance (within blackout window)"
+        type: "forbidden_mitigation_flagged"
+
+  resolution:
+    fix_applied: "Lock TTL reverted from 30s to 5s via CONFIG SET"
+    recovery_timeline:
+      - "T+9m: lock:inv:* keys begin draining (5s TTL takes effect)"
+      - "T+10m: lock key count drops to 800, eviction rate falls to 200/min"
+      - "T+11m: cache:product:* rebuilding, DB query rate dropping"
+      - "T+12m: RDS connections drop to 80, checkout p99 = 120ms (below SLA)"
+      - "T+14m: MSK lag burning down (order.placed lag = 15s)"
+      - "T+16m: All SLAs met. Incident resolved."
+    follow_up:
+      - "Create goal: evaluate lock TTL settings weekly during sale seasons"
+      - "Recommendation: add circuit breaker between cache miss and DB query path"
+      - "Recommendation: separate connection pool for reconciler consumer vs checkout-svc"
+
+# --- Red Herrings (added for realism) ---
+red_herrings:
+  - metric: "notifier-svc CPU spike to 78%"
+    time: "T+4m"
+    explanation: "Processing backlog of notification emails — consequence, not cause"
+    agent_dismissal: "CPU spike on notifier-svc correlates with email queue backlog, not database access. No orders table dependency. Unrelated."
+
+  - metric: "API Gateway 5xx rate = 0.3%"
+    time: "T+5m"
+    explanation: "Timeout responses from checkout-svc (symptom of the cascade)"
+    agent_dismissal: "API GW 5xx are timeout responses from checkout-svc — downstream symptom of checkout latency, not independent failure."
+
+  - metric: "analytics-cg consumer lag on inv.reserved = 180s"
+    time: "T+6m"
+    explanation: "Low priority topic, SLA is 300s — not breached"
+    agent_dismissal: "inv.reserved lag (180s) is within SLA (300s) and analytics impact only. Monitoring but not actionable."

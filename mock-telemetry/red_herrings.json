@@ -1,0 +1,29 @@
+[
+  {
+    "timestamp": "2026-06-13T14:34:00",
+    "service": "notifier-svc",
+    "metric": "CPUUtilization",
+    "value": 78.3,
+    "baseline": 25.0,
+    "explanation": "Processing backlog of notification emails (consequence, not cause)",
+    "agent_should_dismiss": true
+  },
+  {
+    "timestamp": "2026-06-13T14:35:00",
+    "service": "api-gateway",
+    "metric": "5XXError_rate",
+    "value": 0.003,
+    "baseline": 0.0001,
+    "explanation": "Timeout responses from checkout-svc (symptom of cascade)",
+    "agent_should_dismiss": true
+  },
+  {
+    "timestamp": "2026-06-13T14:36:00",
+    "service": "analytics-consumer",
+    "metric": "inv.reserved_lag_seconds",
+    "value": 180,
+    "baseline": 15,
+    "explanation": "Low priority topic, SLA is 300s \u2014 within bounds",
+    "agent_should_dismiss": true
+  }
+]

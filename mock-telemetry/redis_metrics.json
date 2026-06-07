@@ -1,0 +1,891 @@
+[
+  {
+    "timestamp": "2026-06-13T14:30:00",
+    "elapsed_minutes": 0,
+    "redis_info": {
+      "used_memory_bytes": 19814570457,
+      "used_memory_human": "17.3G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 0,
+      "evicted_keys_per_min": 0,
+      "instantaneous_ops_per_sec": 11667,
+      "connected_clients": 186,
+      "keyspace": {
+        "db0": {
+          "keys": 198649,
+          "expires": 176667,
+          "avg_ttl": 43141
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 44648,
+        "memory_mb": 2668,
+        "avg_ttl_sec": 3109,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 120064,
+        "memory_mb": 8097,
+        "avg_ttl_sec": 174,
+        "evictions_last_min": 0
+      },
+      "lock:inv:*": {
+        "count": 200,
+        "memory_mb": 398,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 30267,
+        "memory_mb": 4329,
+        "avg_ttl_sec": 1425,
+        "evictions_last_min": 0
+      }
+    },
+    "slowlog_sample": []
+  },
+  {
+    "timestamp": "2026-06-13T14:31:00",
+    "elapsed_minutes": 1,
+    "redis_info": {
+      "used_memory_bytes": 20038808895,
+      "used_memory_human": "18.0G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 0,
+      "evicted_keys_per_min": 0,
+      "instantaneous_ops_per_sec": 18822,
+      "connected_clients": 189,
+      "keyspace": {
+        "db0": {
+          "keys": 187298,
+          "expires": 163144,
+          "avg_ttl": 46563
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 46275,
+        "memory_mb": 2937,
+        "avg_ttl_sec": 3273,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 120434,
+        "memory_mb": 8902,
+        "avg_ttl_sec": 177,
+        "evictions_last_min": 0
+      },
+      "lock:inv:*": {
+        "count": 258,
+        "memory_mb": 518,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 33157,
+        "memory_mb": 4434,
+        "avg_ttl_sec": 1530,
+        "evictions_last_min": 0
+      }
+    },
+    "slowlog_sample": []
+  },
+  {
+    "timestamp": "2026-06-13T14:32:00",
+    "elapsed_minutes": 2,
+    "redis_info": {
+      "used_memory_bytes": 23084005236,
+      "used_memory_human": "21.6G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 200,
+      "evicted_keys_per_min": 0,
+      "instantaneous_ops_per_sec": 46717,
+      "connected_clients": 196,
+      "keyspace": {
+        "db0": {
+          "keys": 195363,
+          "expires": 172306,
+          "avg_ttl": 44391
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 45995,
+        "memory_mb": 2815,
+        "avg_ttl_sec": 3125,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 125239,
+        "memory_mb": 8625,
+        "avg_ttl_sec": 181,
+        "evictions_last_min": 0
+      },
+      "lock:inv:*": {
+        "count": 4909,
+        "memory_mb": 9499,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 33590,
+        "memory_mb": 4825,
+        "avg_ttl_sec": 1521,
+        "evictions_last_min": 0
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10020,
+        "timestamp": 1781332320,
+        "duration_usec": 17721,
+        "command": [
+          "SET",
+          "lock:inv:sku-1916",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:33:00",
+    "elapsed_minutes": 3,
+    "redis_info": {
+      "used_memory_bytes": 26534073989,
+      "used_memory_human": "24.2G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 1800,
+      "evicted_keys_per_min": 1177,
+      "instantaneous_ops_per_sec": 50792,
+      "connected_clients": 214,
+      "keyspace": {
+        "db0": {
+          "keys": 210779,
+          "expires": 176398,
+          "avg_ttl": 44166
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 48136,
+        "memory_mb": 2919,
+        "avg_ttl_sec": 3332,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 118669,
+        "memory_mb": 7597,
+        "avg_ttl_sec": 175,
+        "evictions_last_min": 845
+      },
+      "lock:inv:*": {
+        "count": 7029,
+        "memory_mb": 14870,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 37432,
+        "memory_mb": 4751,
+        "avg_ttl_sec": 1457,
+        "evictions_last_min": 377
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10030,
+        "timestamp": 1781332380,
+        "duration_usec": 18617,
+        "command": [
+          "SET",
+          "lock:inv:sku-2489",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10031,
+        "timestamp": 1781332380,
+        "duration_usec": 8204,
+        "command": [
+          "GET",
+          "cache:product:24371"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:34:00",
+    "elapsed_minutes": 4,
+    "redis_info": {
+      "used_memory_bytes": 26740821368,
+      "used_memory_human": "24.9G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 4000,
+      "evicted_keys_per_min": 2850,
+      "instantaneous_ops_per_sec": 55530,
+      "connected_clients": 235,
+      "keyspace": {
+        "db0": {
+          "keys": 205612,
+          "expires": 169456,
+          "avg_ttl": 43881
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 48456,
+        "memory_mb": 3132,
+        "avg_ttl_sec": 3257,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 113490,
+        "memory_mb": 7082,
+        "avg_ttl_sec": 184,
+        "evictions_last_min": 2012
+      },
+      "lock:inv:*": {
+        "count": 9348,
+        "memory_mb": 19054,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 36701,
+        "memory_mb": 4751,
+        "avg_ttl_sec": 1533,
+        "evictions_last_min": 858
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10040,
+        "timestamp": 1781332440,
+        "duration_usec": 20681,
+        "command": [
+          "SET",
+          "lock:inv:sku-3927",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10041,
+        "timestamp": 1781332440,
+        "duration_usec": 8006,
+        "command": [
+          "GET",
+          "cache:product:23947"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:35:00",
+    "elapsed_minutes": 5,
+    "redis_info": {
+      "used_memory_bytes": 28784645872,
+      "used_memory_human": "25.3G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 5150,
+      "evicted_keys_per_min": 3193,
+      "instantaneous_ops_per_sec": 53072,
+      "connected_clients": 240,
+      "keyspace": {
+        "db0": {
+          "keys": 210181,
+          "expires": 170669,
+          "avg_ttl": 46253
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 49148,
+        "memory_mb": 2897,
+        "avg_ttl_sec": 3143,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 112134,
+        "memory_mb": 6893,
+        "avg_ttl_sec": 186,
+        "evictions_last_min": 2278
+      },
+      "lock:inv:*": {
+        "count": 10543,
+        "memory_mb": 21042,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 41512,
+        "memory_mb": 5432,
+        "avg_ttl_sec": 1437,
+        "evictions_last_min": 943
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10050,
+        "timestamp": 1781332500,
+        "duration_usec": 19497,
+        "command": [
+          "SET",
+          "lock:inv:sku-9727",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10051,
+        "timestamp": 1781332500,
+        "duration_usec": 8212,
+        "command": [
+          "GET",
+          "cache:product:26828"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:36:00",
+    "elapsed_minutes": 6,
+    "redis_info": {
+      "used_memory_bytes": 28254178893,
+      "used_memory_human": "27.1G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 6500,
+      "evicted_keys_per_min": 3382,
+      "instantaneous_ops_per_sec": 50138,
+      "connected_clients": 274,
+      "keyspace": {
+        "db0": {
+          "keys": 215513,
+          "expires": 177291,
+          "avg_ttl": 46148
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 50745,
+        "memory_mb": 3166,
+        "avg_ttl_sec": 3167,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 119568,
+        "memory_mb": 6318,
+        "avg_ttl_sec": 187,
+        "evictions_last_min": 2438
+      },
+      "lock:inv:*": {
+        "count": 11697,
+        "memory_mb": 23504,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 39988,
+        "memory_mb": 5429,
+        "avg_ttl_sec": 1513,
+        "evictions_last_min": 998
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10060,
+        "timestamp": 1781332560,
+        "duration_usec": 21436,
+        "command": [
+          "SET",
+          "lock:inv:sku-1964",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10061,
+        "timestamp": 1781332560,
+        "duration_usec": 7783,
+        "command": [
+          "GET",
+          "cache:product:14117"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:37:00",
+    "elapsed_minutes": 7,
+    "redis_info": {
+      "used_memory_bytes": 28810056169,
+      "used_memory_human": "24.8G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 7950,
+      "evicted_keys_per_min": 3651,
+      "instantaneous_ops_per_sec": 49827,
+      "connected_clients": 271,
+      "keyspace": {
+        "db0": {
+          "keys": 199268,
+          "expires": 177403,
+          "avg_ttl": 45319
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 50461,
+        "memory_mb": 3239,
+        "avg_ttl_sec": 3298,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 113741,
+        "memory_mb": 5998,
+        "avg_ttl_sec": 178,
+        "evictions_last_min": 2604
+      },
+      "lock:inv:*": {
+        "count": 12957,
+        "memory_mb": 27233,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 44762,
+        "memory_mb": 5871,
+        "avg_ttl_sec": 1439,
+        "evictions_last_min": 1114
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10070,
+        "timestamp": 1781332620,
+        "duration_usec": 21154,
+        "command": [
+          "SET",
+          "lock:inv:sku-2790",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10071,
+        "timestamp": 1781332620,
+        "duration_usec": 7798,
+        "command": [
+          "GET",
+          "cache:product:34931"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:38:00",
+    "elapsed_minutes": 8,
+    "redis_info": {
+      "used_memory_bytes": 27910823608,
+      "used_memory_human": "25.0G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 9600,
+      "evicted_keys_per_min": 3873,
+      "instantaneous_ops_per_sec": 47820,
+      "connected_clients": 317,
+      "keyspace": {
+        "db0": {
+          "keys": 198976,
+          "expires": 175236,
+          "avg_ttl": 46601
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 49333,
+        "memory_mb": 3248,
+        "avg_ttl_sec": 3212,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 111512,
+        "memory_mb": 5851,
+        "avg_ttl_sec": 184,
+        "evictions_last_min": 2726
+      },
+      "lock:inv:*": {
+        "count": 13868,
+        "memory_mb": 28618,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 47677,
+        "memory_mb": 6033,
+        "avg_ttl_sec": 1449,
+        "evictions_last_min": 1140
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10080,
+        "timestamp": 1781332680,
+        "duration_usec": 21758,
+        "command": [
+          "SET",
+          "lock:inv:sku-8454",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10081,
+        "timestamp": 1781332680,
+        "duration_usec": 7828,
+        "command": [
+          "GET",
+          "cache:product:82845"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:39:00",
+    "elapsed_minutes": 9,
+    "redis_info": {
+      "used_memory_bytes": 28260075955,
+      "used_memory_human": "25.9G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 11200,
+      "evicted_keys_per_min": 3875,
+      "instantaneous_ops_per_sec": 46644,
+      "connected_clients": 292,
+      "keyspace": {
+        "db0": {
+          "keys": 212698,
+          "expires": 162536,
+          "avg_ttl": 44161
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 49851,
+        "memory_mb": 3242,
+        "avg_ttl_sec": 3334,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 117564,
+        "memory_mb": 5829,
+        "avg_ttl_sec": 180,
+        "evictions_last_min": 2898
+      },
+      "lock:inv:*": {
+        "count": 13395,
+        "memory_mb": 27433,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 49736,
+        "memory_mb": 5942,
+        "avg_ttl_sec": 1566,
+        "evictions_last_min": 1208
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10090,
+        "timestamp": 1781332740,
+        "duration_usec": 22173,
+        "command": [
+          "SET",
+          "lock:inv:sku-1651",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10091,
+        "timestamp": 1781332740,
+        "duration_usec": 8095,
+        "command": [
+          "GET",
+          "cache:product:64948"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:40:00",
+    "elapsed_minutes": 10,
+    "redis_info": {
+      "used_memory_bytes": 28247566646,
+      "used_memory_human": "26.1G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 13000,
+      "evicted_keys_per_min": 3926,
+      "instantaneous_ops_per_sec": 46851,
+      "connected_clients": 338,
+      "keyspace": {
+        "db0": {
+          "keys": 203938,
+          "expires": 166015,
+          "avg_ttl": 43338
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 53771,
+        "memory_mb": 3285,
+        "avg_ttl_sec": 3337,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 122306,
+        "memory_mb": 5800,
+        "avg_ttl_sec": 182,
+        "evictions_last_min": 2817
+      },
+      "lock:inv:*": {
+        "count": 13439,
+        "memory_mb": 28779,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 50029,
+        "memory_mb": 5972,
+        "avg_ttl_sec": 1477,
+        "evictions_last_min": 1148
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10100,
+        "timestamp": 1781332800,
+        "duration_usec": 21437,
+        "command": [
+          "SET",
+          "lock:inv:sku-5669",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10101,
+        "timestamp": 1781332800,
+        "duration_usec": 7726,
+        "command": [
+          "GET",
+          "cache:product:81200"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:41:00",
+    "elapsed_minutes": 11,
+    "redis_info": {
+      "used_memory_bytes": 28375956007,
+      "used_memory_human": "26.2G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 15000,
+      "evicted_keys_per_min": 4194,
+      "instantaneous_ops_per_sec": 48739,
+      "connected_clients": 317,
+      "keyspace": {
+        "db0": {
+          "keys": 214389,
+          "expires": 166589,
+          "avg_ttl": 45735
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 56161,
+        "memory_mb": 3227,
+        "avg_ttl_sec": 3076,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 112594,
+        "memory_mb": 6132,
+        "avg_ttl_sec": 175,
+        "evictions_last_min": 2829
+      },
+      "lock:inv:*": {
+        "count": 14304,
+        "memory_mb": 27822,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 52698,
+        "memory_mb": 6248,
+        "avg_ttl_sec": 1498,
+        "evictions_last_min": 1248
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10110,
+        "timestamp": 1781332860,
+        "duration_usec": 22761,
+        "command": [
+          "SET",
+          "lock:inv:sku-2512",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10111,
+        "timestamp": 1781332860,
+        "duration_usec": 8107,
+        "command": [
+          "GET",
+          "cache:product:46265"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T14:42:00",
+    "elapsed_minutes": 12,
+    "redis_info": {
+      "used_memory_bytes": 26542022481,
+      "used_memory_human": "25.5G",
+      "maxmemory_bytes": 27917287424,
+      "maxmemory_policy": "volatile-lfu",
+      "evicted_keys_total": 17200,
+      "evicted_keys_per_min": 3852,
+      "instantaneous_ops_per_sec": 50303,
+      "connected_clients": 340,
+      "keyspace": {
+        "db0": {
+          "keys": 206591,
+          "expires": 173496,
+          "avg_ttl": 45274
+        }
+      }
+    },
+    "keyspace_breakdown": {
+      "session:*": {
+        "count": 52480,
+        "memory_mb": 3551,
+        "avg_ttl_sec": 3261,
+        "evictions_last_min": 0
+      },
+      "cache:product:*": {
+        "count": 113086,
+        "memory_mb": 5816,
+        "avg_ttl_sec": 177,
+        "evictions_last_min": 2814
+      },
+      "lock:inv:*": {
+        "count": 13901,
+        "memory_mb": 27358,
+        "avg_ttl_sec": 30,
+        "evictions_last_min": 0
+      },
+      "cart:*": {
+        "count": 53269,
+        "memory_mb": 6885,
+        "avg_ttl_sec": 1570,
+        "evictions_last_min": 1144
+      }
+    },
+    "slowlog_sample": [
+      {
+        "id": 10120,
+        "timestamp": 1781332920,
+        "duration_usec": 21687,
+        "command": [
+          "SET",
+          "lock:inv:sku-5088",
+          "1",
+          "EX",
+          "30",
+          "NX"
+        ],
+        "client": "checkout-svc:6379"
+      },
+      {
+        "id": 10121,
+        "timestamp": 1781332920,
+        "duration_usec": 8133,
+        "command": [
+          "GET",
+          "cache:product:56357"
+        ],
+        "client": "checkout-svc:6379"
+      }
+    ]
+  }
+]
