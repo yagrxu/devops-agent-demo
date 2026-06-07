@@ -1,11 +1,18 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as ecr_assets from 'aws-cdk-lib/aws-ecr-assets';
+import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elasticache from 'aws-cdk-lib/aws-elasticache';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as msk from 'aws-cdk-lib/aws-msk';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as path from 'path';
 import { Construct } from 'constructs';
 
 export class DemoInfraStack extends cdk.Stack {
@@ -30,6 +37,15 @@ export class DemoInfraStack extends cdk.Stack {
     });
     internalSg.addIngressRule(internalSg, ec2.Port.allTraffic(), 'Self-referencing');
 
+    // ALB security group
+    const albSg = new ec2.SecurityGroup(this, 'AlbSg', {
+      vpc,
+      description: 'ALB security group',
+      allowAllOutbound: true,
+    });
+    albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'HTTP from CloudFront');
+    internalSg.addIngressRule(albSg, ec2.Port.tcp(8080), 'From ALB to ECS');
+
     // --- SNS Topic for Alarms ---
     const alarmTopic = new sns.Topic(this, 'DemoAlarmTopic', {
       topicName: 'devops-agent-demo-alarms',
@@ -37,12 +53,6 @@ export class DemoInfraStack extends cdk.Stack {
     });
 
     // --- ElastiCache Redis (Serverless) ---
-    const redisSubnetGroup = new elasticache.CfnSubnetGroup(this, 'RedisSubnetGroup', {
-      description: 'Demo Redis subnet group',
-      subnetIds: vpc.privateSubnets.map(s => s.subnetId),
-      cacheSubnetGroupName: 'devops-agent-demo-redis-sg',
-    });
-
     const redis = new elasticache.CfnServerlessCache(this, 'DemoRedis', {
       serverlessCacheName: 'quickmart-demo-redis',
       engine: 'redis',
@@ -91,9 +101,103 @@ export class DemoInfraStack extends cdk.Stack {
       }],
     });
 
+    // --- ECS Cluster + Fargate Service ---
+    const cluster = new ecs.Cluster(this, 'DemoCluster', {
+      vpc,
+      clusterName: 'quickmart-demo',
+    });
+
+    const taskDef = new ecs.FargateTaskDefinition(this, 'CheckoutTaskDef', {
+      memoryLimitMiB: 1024,
+      cpu: 512,
+    });
+
+    // Grant task role access to secrets + CloudWatch + MSK
+    taskDef.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      actions: ['secretsmanager:GetSecretValue'],
+      resources: [dbCluster.secret!.secretArn],
+    }));
+    taskDef.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      actions: ['cloudwatch:PutMetricData'],
+      resources: ['*'],
+    }));
+    taskDef.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      actions: ['kafka-cluster:*', 'kafka:*'],
+      resources: ['*'],
+    }));
+
+    const appImage = new ecr_assets.DockerImageAsset(this, 'CheckoutImage', {
+      directory: path.join(__dirname, '../../app'),
+    });
+
+    const container = taskDef.addContainer('checkout-svc', {
+      image: ecs.ContainerImage.fromDockerImageAsset(appImage),
+      logging: ecs.LogDrivers.awsLogs({
+        streamPrefix: 'checkout-svc',
+        logRetention: logs.RetentionDays.THREE_DAYS,
+      }),
+      environment: {
+        REDIS_HOST: redis.attrEndpointAddress,
+        REDIS_PORT: redis.attrEndpointPort,
+        REDIS_SSL: 'true',
+        DB_HOST: dbCluster.clusterEndpoint.hostname,
+        DB_PORT: dbCluster.clusterEndpoint.port.toString(),
+        DB_NAME: 'quickmart',
+        DB_SECRET_ARN: dbCluster.secret!.secretArn,
+        MSK_BOOTSTRAP: '',  // Will need bootstrap endpoint after cluster creation
+        LOCK_TTL_SECONDS: '30',  // THE BUG: should be 5
+        AWS_REGION: cdk.Stack.of(this).region,
+      },
+      portMappings: [{ containerPort: 8080 }],
+    });
+
+    const service = new ecs.FargateService(this, 'CheckoutService', {
+      cluster,
+      taskDefinition: taskDef,
+      desiredCount: 2,
+      securityGroups: [internalSg],
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+      assignPublicIp: false,
+    });
+
+    // --- ALB ---
+    const alb = new elbv2.ApplicationLoadBalancer(this, 'DemoAlb', {
+      vpc,
+      internetFacing: true,
+      securityGroup: albSg,
+    });
+
+    const listener = alb.addListener('HttpListener', {
+      port: 80,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+    });
+
+    listener.addTargets('CheckoutTarget', {
+      port: 8080,
+      targets: [service],
+      healthCheck: {
+        path: '/health',
+        interval: cdk.Duration.seconds(30),
+        healthyThresholdCount: 2,
+        unhealthyThresholdCount: 3,
+      },
+    });
+
+    // --- CloudFront ---
+    const distribution = new cloudfront.Distribution(this, 'DemoDistribution', {
+      defaultBehavior: {
+        origin: new origins.LoadBalancerV2Origin(alb, {
+          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+        }),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
+      },
+    });
+
     // --- CloudWatch Alarms ---
 
-    // Redis: Memory usage high (simulated via ElastiCache metrics)
     const redisMemoryAlarm = new cloudwatch.Alarm(this, 'RedisMemoryAlarm', {
       alarmName: 'quickmart-demo-redis-memory-high',
       alarmDescription: 'Redis memory usage exceeds 80% - potential eviction pressure',
@@ -104,14 +208,13 @@ export class DemoInfraStack extends cdk.Stack {
         statistic: 'Average',
         period: cdk.Duration.minutes(1),
       }),
-      threshold: 4 * 1024 * 1024 * 1024, // 4GB of 5GB limit
+      threshold: 4 * 1024 * 1024 * 1024,
       evaluationPeriods: 2,
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
     redisMemoryAlarm.addAlarmAction({ bind: () => ({ alarmActionArn: alarmTopic.topicArn }) });
 
-    // Redis: Evictions alarm
     const redisEvictionsAlarm = new cloudwatch.Alarm(this, 'RedisEvictionsAlarm', {
       alarmName: 'quickmart-demo-redis-evictions-high',
       alarmDescription: 'Redis evictions exceeding threshold - keyspace pressure',
@@ -129,7 +232,6 @@ export class DemoInfraStack extends cdk.Stack {
     });
     redisEvictionsAlarm.addAlarmAction({ bind: () => ({ alarmActionArn: alarmTopic.topicArn }) });
 
-    // RDS: Connection count high
     const rdsConnectionAlarm = new cloudwatch.Alarm(this, 'RdsConnectionAlarm', {
       alarmName: 'quickmart-demo-rds-connections-high',
       alarmDescription: 'Aurora connection count approaching max_connections',
@@ -140,14 +242,13 @@ export class DemoInfraStack extends cdk.Stack {
         statistic: 'Maximum',
         period: cdk.Duration.minutes(1),
       }),
-      threshold: 50, // Low threshold for demo (serverless has limited connections)
+      threshold: 50,
       evaluationPeriods: 2,
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
     rdsConnectionAlarm.addAlarmAction({ bind: () => ({ alarmActionArn: alarmTopic.topicArn }) });
 
-    // RDS: High latency (using ReadLatency as proxy)
     const rdsLatencyAlarm = new cloudwatch.Alarm(this, 'RdsLatencyAlarm', {
       alarmName: 'quickmart-demo-rds-latency-high',
       alarmDescription: 'Aurora read latency exceeding SLA - checkout transaction degraded',
@@ -158,14 +259,13 @@ export class DemoInfraStack extends cdk.Stack {
         statistic: 'Average',
         period: cdk.Duration.minutes(1),
       }),
-      threshold: 0.02, // 20ms (high for Aurora)
+      threshold: 0.02,
       evaluationPeriods: 2,
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
     rdsLatencyAlarm.addAlarmAction({ bind: () => ({ alarmActionArn: alarmTopic.topicArn }) });
 
-    // Custom metric alarm for checkout p99 (we'll push this metric from the injection script)
     const checkoutP99Alarm = new cloudwatch.Alarm(this, 'CheckoutP99Alarm', {
       alarmName: 'quickmart-demo-checkout-p99-high',
       alarmDescription: 'Checkout transaction p99 latency exceeds 200ms SLA',
@@ -176,14 +276,13 @@ export class DemoInfraStack extends cdk.Stack {
         statistic: 'Maximum',
         period: cdk.Duration.minutes(1),
       }),
-      threshold: 200, // 200ms SLA
+      threshold: 200,
       evaluationPeriods: 2,
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
     checkoutP99Alarm.addAlarmAction({ bind: () => ({ alarmActionArn: alarmTopic.topicArn }) });
 
-    // Custom metric alarm for MSK consumer lag
     const mskLagAlarm = new cloudwatch.Alarm(this, 'MskLagAlarm', {
       alarmName: 'quickmart-demo-msk-consumer-lag-high',
       alarmDescription: 'MSK consumer lag on order.placed exceeds 30s SLA',
@@ -201,26 +300,18 @@ export class DemoInfraStack extends cdk.Stack {
     });
     mskLagAlarm.addAlarmAction({ bind: () => ({ alarmActionArn: alarmTopic.topicArn }) });
 
-    // --- Bastion Host (for running injection scripts) ---
-    const bastion = new ec2.BastionHostLinux(this, 'DemoBastion', {
-      vpc,
-      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
-      subnetSelection: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-      securityGroup: internalSg,
-    });
-    bastion.instance.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['cloudwatch:PutMetricData'],
-      resources: ['*'],
-    }));
-    bastion.instance.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['cloudwatch:SetAlarmState'],
-      resources: ['*'],
-    }));
-
     // --- Outputs ---
     new cdk.CfnOutput(this, 'VpcId', { value: vpc.vpcId });
+    new cdk.CfnOutput(this, 'CloudFrontDomain', {
+      value: distribution.distributionDomainName,
+      description: 'CloudFront URL (https://<domain>/checkout)',
+    });
+    new cdk.CfnOutput(this, 'AlbDnsName', {
+      value: alb.loadBalancerDnsName,
+      description: 'ALB DNS name',
+    });
     new cdk.CfnOutput(this, 'RedisEndpoint', {
-      value: redis.attrEndpointAddress ?? 'pending',
+      value: redis.attrEndpointAddress,
       description: 'Redis Serverless endpoint',
     });
     new cdk.CfnOutput(this, 'AuroraClusterEndpoint', {
@@ -232,20 +323,16 @@ export class DemoInfraStack extends cdk.Stack {
       description: 'Aurora credentials secret ARN',
     });
     new cdk.CfnOutput(this, 'MskClusterArn', {
-      value: msk_cluster_arn(mskCluster),
+      value: mskCluster.attrArn,
       description: 'MSK Serverless cluster ARN',
     });
     new cdk.CfnOutput(this, 'AlarmTopicArn', {
       value: alarmTopic.topicArn,
       description: 'SNS topic for alarms',
     });
-    new cdk.CfnOutput(this, 'BastionInstanceId', {
-      value: bastion.instanceId,
-      description: 'Bastion host for SSM Session Manager',
+    new cdk.CfnOutput(this, 'EcsClusterName', {
+      value: cluster.clusterName,
+      description: 'ECS cluster name',
     });
   }
-}
-
-function msk_cluster_arn(cluster: msk.CfnServerlessCluster): string {
-  return cluster.attrArn;
 }
