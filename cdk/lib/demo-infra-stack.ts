@@ -43,8 +43,10 @@ export class DemoInfraStack extends cdk.Stack {
       description: 'ALB security group - CloudFront only',
       allowAllOutbound: true,
     });
-    // Lookup the AWS-managed CloudFront origin-facing prefix list
-    const cfPrefixList = ec2.PrefixList.fromPrefixListId(this, 'CloudFrontPrefixList', 'pl-31a34658');
+    // Lookup the AWS-managed CloudFront origin-facing prefix list dynamically
+    const cfPrefixList = ec2.PrefixList.fromLookup(this, 'CloudFrontPrefixList', {
+      prefixListName: 'com.amazonaws.global.cloudfront.origin-facing',
+    });
     albSg.addIngressRule(
       ec2.Peer.prefixList(cfPrefixList.prefixListId),
       ec2.Port.tcp(80),
@@ -77,7 +79,7 @@ export class DemoInfraStack extends cdk.Stack {
     // --- Aurora Serverless v2 (PostgreSQL) ---
     const dbCluster = new rds.DatabaseCluster(this, 'DemoAurora', {
       engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_15_8,
+        version: rds.AuroraPostgresEngineVersion.VER_16_8,
       }),
       serverlessV2MinCapacity: 0.5,
       serverlessV2MaxCapacity: 4,
