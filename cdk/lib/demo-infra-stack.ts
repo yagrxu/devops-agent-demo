@@ -76,7 +76,7 @@ export class DemoInfraStack extends cdk.Stack {
     // --- Aurora Serverless v2 (PostgreSQL) ---
     const dbCluster = new rds.DatabaseCluster(this, 'DemoAurora', {
       engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_15_4,
+        version: rds.AuroraPostgresEngineVersion.VER_15_8,
       }),
       serverlessV2MinCapacity: 0.5,
       serverlessV2MaxCapacity: 4,
