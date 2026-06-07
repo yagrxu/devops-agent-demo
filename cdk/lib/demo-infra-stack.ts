@@ -43,9 +43,10 @@ export class DemoInfraStack extends cdk.Stack {
       description: 'ALB security group - CloudFront only',
       allowAllOutbound: true,
     });
-    // Use AWS-managed prefix list for CloudFront origin-facing IPs
+    // Lookup the AWS-managed CloudFront origin-facing prefix list
+    const cfPrefixList = ec2.PrefixList.fromPrefixListId(this, 'CloudFrontPrefixList', 'pl-31a34658');
     albSg.addIngressRule(
-      ec2.Peer.prefixList('com.amazonaws.global.cloudfront.origin-facing'),
+      ec2.Peer.prefixList(cfPrefixList.prefixListId),
       ec2.Port.tcp(80),
       'HTTP from CloudFront only'
     );
