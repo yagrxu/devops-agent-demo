@@ -12,6 +12,7 @@ import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as path from 'path';
 import { Construct } from 'constructs';
@@ -327,84 +328,42 @@ export class DemoInfraStack extends cdk.Stack {
     // --- DevOps Agent Space + AWS Source Association ---
     const agentSpaceName = 'quickmart-demo';
 
-    const agentSpace = new cr.AwsCustomResource(this, 'DevOpsAgentSpace', {
-      onCreate: {
-        service: 'DevOpsAgent',
-        action: 'createAgentSpace',
-        parameters: {
-          name: agentSpaceName,
-          description: 'QuickMart flash-sale cascade demo for HK Summit 2026',
-          locale: 'en',
-          tags: {
-            Project: 'hk-summit-2026',
-            Purpose: 'demo',
-          },
-        },
-        physicalResourceId: cr.PhysicalResourceId.fromResponse('agentSpace.agentSpaceId'),
-      },
-      onDelete: {
-        service: 'DevOpsAgent',
-        action: 'deleteAgentSpace',
-        parameters: {
-          agentSpaceId: new cr.PhysicalResourceIdReference().toString(),
-        },
-      },
-      policy: cr.AwsCustomResourcePolicy.fromStatements([
-        new iam.PolicyStatement({
-          actions: [
-            'devops-agent:CreateAgentSpace',
-            'devops-agent:DeleteAgentSpace',
-            'devops-agent:GetAgentSpace',
-          ],
-          resources: ['*'],
-        }),
-      ]),
-      installLatestAwsSdk: true,
+    const devopsAgentSetupFn = new lambda.Function(this, 'DevOpsAgentSetupFn', {
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/devops-agent-setup')),
+      timeout: cdk.Duration.minutes(5),
+      logRetention: logs.RetentionDays.THREE_DAYS,
+    });
+    devopsAgentSetupFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: [
+        'devops-agent:CreateAgentSpace',
+        'devops-agent:DeleteAgentSpace',
+        'devops-agent:GetAgentSpace',
+        'devops-agent:AssociateService',
+        'devops-agent:DisassociateService',
+      ],
+      resources: ['*'],
+    }));
+
+    const devopsAgentProvider = new cr.Provider(this, 'DevOpsAgentProvider', {
+      onEventHandler: devopsAgentSetupFn,
       logRetention: logs.RetentionDays.THREE_DAYS,
     });
 
-    const awsSourceAssociation = new cr.AwsCustomResource(this, 'DevOpsAgentAwsSource', {
-      onCreate: {
-        service: 'DevOpsAgent',
-        action: 'associateService',
-        parameters: {
-          agentSpaceId: agentSpace.getResponseField('agentSpace.agentSpaceId'),
-          serviceId: 'aws-source',
-          configuration: {
-            sourceAws: {
-              accountId: cdk.Stack.of(this).account,
-              accountType: 'source',
-            },
-          },
-        },
-        physicalResourceId: cr.PhysicalResourceId.fromResponse('association.associationId'),
+    const devopsAgentSpace = new cdk.CustomResource(this, 'DevOpsAgentSpace', {
+      serviceToken: devopsAgentProvider.serviceToken,
+      properties: {
+        SpaceName: agentSpaceName,
+        AccountId: cdk.Stack.of(this).account,
+        Region: cdk.Stack.of(this).region,
       },
-      onDelete: {
-        service: 'DevOpsAgent',
-        action: 'disassociateService',
-        parameters: {
-          agentSpaceId: agentSpace.getResponseField('agentSpace.agentSpaceId'),
-          associationId: new cr.PhysicalResourceIdReference().toString(),
-        },
-      },
-      policy: cr.AwsCustomResourcePolicy.fromStatements([
-        new iam.PolicyStatement({
-          actions: [
-            'devops-agent:AssociateService',
-            'devops-agent:DisassociateService',
-            'devops-agent:GetServiceAssociation',
-          ],
-          resources: ['*'],
-        }),
-      ]),
-      installLatestAwsSdk: true,
-      logRetention: logs.RetentionDays.THREE_DAYS,
     });
 
     // --- Outputs ---
-    new cdk.CfnOutput(this, 'DevOpsAgentSpaceName', {
-      value: agentSpaceName,
-      description: 'DevOps Agent space name',
+    new cdk.CfnOutput(this, 'DevOpsAgentSpaceId', {
+      value: devopsAgentSpace.getAttString('AgentSpaceId'),
+      description: 'DevOps Agent space ID',
     });
     new cdk.CfnOutput(this, 'VpcId', { value: vpc.vpcId });
     new cdk.CfnOutput(this, 'CloudFrontDomain', {
