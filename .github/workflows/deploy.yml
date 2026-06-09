@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 env:
-  AWS_REGION: ap-southeast-1
+  AWS_REGION: us-east-1
   NODE_VERSION: '20'
 
 jobs:
