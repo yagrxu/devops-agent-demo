@@ -345,11 +345,12 @@ export class DemoInfraStack extends cdk.Stack {
     });
     devopsAgentSetupFn.addToRolePolicy(new iam.PolicyStatement({
       actions: [
-        'devops-agent:CreateAgentSpace',
-        'devops-agent:DeleteAgentSpace',
-        'devops-agent:GetAgentSpace',
-        'devops-agent:AssociateService',
-        'devops-agent:DisassociateService',
+        'aidevops:CreateAgentSpace',
+        'aidevops:DeleteAgentSpace',
+        'aidevops:GetAgentSpace',
+        'aidevops:AssociateService',
+        'aidevops:DisassociateService',
+        'aidevops:TagResource',
       ],
       resources: ['*'],
     }));
