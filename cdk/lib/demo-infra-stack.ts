@@ -331,7 +331,15 @@ export class DemoInfraStack extends cdk.Stack {
     const devopsAgentSetupFn = new lambda.Function(this, 'DevOpsAgentSetupFn', {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/devops-agent-setup')),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/devops-agent-setup'), {
+        bundling: {
+          image: lambda.Runtime.PYTHON_3_12.bundlingImage,
+          command: [
+            'bash', '-c',
+            'pip install -r requirements.txt -t /asset-output && cp index.py /asset-output/',
+          ],
+        },
+      }),
       timeout: cdk.Duration.minutes(5),
       logRetention: logs.RetentionDays.THREE_DAYS,
     });
