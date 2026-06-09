@@ -334,7 +334,16 @@ export class DemoInfraStack extends cdk.Stack {
       roleName: 'devops-agent-demo-operator-role',
       assumedBy: new iam.CompositePrincipal(
         new iam.ArnPrincipal(`arn:aws:iam::${cdk.Stack.of(this).account}:root`),
-        new iam.ServicePrincipal('aidevops.amazonaws.com'),
+        new iam.ServicePrincipal('aidevops.amazonaws.com', {
+          conditions: {
+            StringEquals: {
+              'aws:SourceAccount': cdk.Stack.of(this).account,
+            },
+            ArnLike: {
+              'aws:SourceArn': `arn:aws:aidevops:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:agentspace/*`,
+            },
+          },
+        }),
       ),
       inlinePolicies: {
         DevOpsAgentAccess: new iam.PolicyDocument({
