@@ -328,6 +328,37 @@ export class DemoInfraStack extends cdk.Stack {
     // --- DevOps Agent Space + AWS Source Association ---
     const agentSpaceName = 'quickmart-demo';
 
+    const devopsAgentSourceRole = new iam.Role(this, 'DevOpsAgentSourceRole', {
+      roleName: 'devops-agent-demo-source-role',
+      assumedBy: new iam.ServicePrincipal('aidevops.amazonaws.com'),
+      inlinePolicies: {
+        ReadOnly: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: [
+                'cloudwatch:GetMetricData',
+                'cloudwatch:ListMetrics',
+                'cloudwatch:DescribeAlarms',
+                'cloudwatch:GetMetricStatistics',
+                'logs:GetLogEvents',
+                'logs:FilterLogEvents',
+                'logs:DescribeLogGroups',
+                'logs:DescribeLogStreams',
+                'ecs:DescribeServices',
+                'ecs:DescribeTasks',
+                'ecs:ListTasks',
+                'elasticache:DescribeServerlessCaches',
+                'rds:DescribeDBClusters',
+                'kafka:DescribeCluster',
+                'kafka:ListClusters',
+              ],
+              resources: ['*'],
+            }),
+          ],
+        }),
+      },
+    });
+
     const devopsAgentSetupFn = new lambda.Function(this, 'DevOpsAgentSetupFn', {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'index.handler',
@@ -366,6 +397,7 @@ export class DemoInfraStack extends cdk.Stack {
         SpaceName: agentSpaceName,
         AccountId: cdk.Stack.of(this).account,
         Region: cdk.Stack.of(this).region,
+        AssumeRoleArn: devopsAgentSourceRole.roleArn,
       },
     });
 

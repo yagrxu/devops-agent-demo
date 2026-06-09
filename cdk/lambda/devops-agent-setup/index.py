@@ -14,6 +14,7 @@ def handler(event, context):
     region = props['Region']
     space_name = props['SpaceName']
     account_id = props['AccountId']
+    assume_role_arn = props['AssumeRoleArn']
 
     client = boto3.client('devops-agent', region_name=region)
 
@@ -37,6 +38,7 @@ def handler(event, context):
                 'sourceAws': {
                     'accountId': account_id,
                     'accountType': 'source',
+                    'assumableRoleArn': assume_role_arn,
                 },
             },
         )
