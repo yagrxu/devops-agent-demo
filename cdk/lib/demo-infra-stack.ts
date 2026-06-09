@@ -16,6 +16,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as path from 'path';
 import { Construct } from 'constructs';
+import { DevOpsAgentSlack } from './slack-construct';
 
 export class DemoInfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -376,8 +377,22 @@ export class DemoInfraStack extends cdk.Stack {
           image: lambda.Runtime.PYTHON_3_12.bundlingImage,
           command: [
             'bash', '-c',
-            'pip install -r requirements.txt -t /asset-output && cp index.py /asset-output/',
+            'pip install --no-cache-dir -r requirements.txt -t /asset-output && cp index.py /asset-output/',
           ],
+          local: {
+            tryBundle(outputDir: string) {
+              try {
+                const { execSync } = require('child_process');
+                execSync(
+                  `pip install --no-cache-dir -r requirements.txt -t "${outputDir}" && cp index.py "${outputDir}"`,
+                  { cwd: path.join(__dirname, '../lambda/devops-agent-setup'), stdio: 'pipe' },
+                );
+                return true;
+              } catch {
+                return false;
+              }
+            },
+          },
         },
       }),
       timeout: cdk.Duration.minutes(5),
@@ -414,6 +429,25 @@ export class DemoInfraStack extends cdk.Stack {
         AssumeRoleArn: devopsAgentSourceRole.roleArn,
       },
     });
+
+    // --- Slack Integration (optional, enable via context) ---
+    const webhookSecretArn = this.node.tryGetContext('slackWebhookSecretArn');
+    const slackSecretArn = this.node.tryGetContext('slackSecretArn');
+    const operatorRoleArn = this.node.tryGetContext('slackOperatorRoleArn');
+    const slackDeploymentId = this.node.tryGetContext('slackDeploymentId');
+
+    if (webhookSecretArn && slackSecretArn && operatorRoleArn && slackDeploymentId) {
+      new DevOpsAgentSlack(this, 'SlackIntegration', {
+        projectName: 'quickmart-demo',
+        alarmTopicArn: alarmTopic.topicArn,
+        webhookSecretArn,
+        slackSecretArn,
+        operatorRoleArn,
+        webhookSecretName: this.node.tryGetContext('slackWebhookSecretName') || 'quickmart-demo/devops-agent-webhook',
+        slackSecretName: this.node.tryGetContext('slackSecretName') || 'quickmart-demo/slack-bot',
+        deploymentId: slackDeploymentId,
+      });
+    }
 
     // --- Outputs ---
     new cdk.CfnOutput(this, 'DevOpsAgentSpaceId', {
