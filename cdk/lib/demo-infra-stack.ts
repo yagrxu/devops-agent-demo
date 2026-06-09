@@ -386,6 +386,10 @@ export class DemoInfraStack extends cdk.Stack {
       ],
       resources: ['*'],
     }));
+    devopsAgentSetupFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['iam:PassRole'],
+      resources: [devopsAgentSourceRole.roleArn],
+    }));
 
     const devopsAgentProvider = new cr.Provider(this, 'DevOpsAgentProvider', {
       onEventHandler: devopsAgentSetupFn,
