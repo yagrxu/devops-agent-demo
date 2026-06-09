@@ -19,21 +19,34 @@ def handler(event, context):
     client = boto3.client('devops-agent', region_name=region)
 
     if request_type == 'Create':
-        resp = client.create_agent_space(
-            name=space_name,
-            description='QuickMart flash-sale cascade demo for HK Summit 2026',
-            locale='en',
-            tags={
-                'Project': 'hk-summit-2026',
-                'Purpose': 'demo',
-            },
-        )
-        space_id = resp['agentSpace']['agentSpaceId']
-        logger.info(f'Created agent space: {space_id}')
+        # Handle re-creation: if space already exists from a failed rollback, reuse it
+        space_id = None
+        try:
+            list_resp = client.list_agent_spaces()
+            for space in list_resp.get('agentSpaces', []):
+                if space.get('name') == space_name:
+                    space_id = space['agentSpaceId']
+                    logger.info(f'Found existing agent space: {space_id}')
+                    break
+        except Exception as e:
+            logger.warning(f'Could not list spaces: {e}')
+
+        if not space_id:
+            resp = client.create_agent_space(
+                name=space_name,
+                description='QuickMart flash-sale cascade demo for HK Summit 2026',
+                locale='en',
+                tags={
+                    'Project': 'hk-summit-2026',
+                    'Purpose': 'demo',
+                },
+            )
+            space_id = resp['agentSpace']['agentSpaceId']
+            logger.info(f'Created agent space: {space_id}')
 
         assoc_resp = client.associate_service(
             agentSpaceId=space_id,
-            serviceId='aws-source',
+            serviceId='aws',
             configuration={
                 'sourceAws': {
                     'accountId': account_id,

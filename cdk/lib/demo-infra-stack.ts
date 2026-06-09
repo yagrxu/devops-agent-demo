@@ -379,6 +379,7 @@ export class DemoInfraStack extends cdk.Stack {
         'aidevops:CreateAgentSpace',
         'aidevops:DeleteAgentSpace',
         'aidevops:GetAgentSpace',
+        'aidevops:ListAgentSpaces',
         'aidevops:AssociateService',
         'aidevops:DisassociateService',
         'aidevops:TagResource',
