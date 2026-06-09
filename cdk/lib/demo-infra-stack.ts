@@ -329,10 +329,13 @@ export class DemoInfraStack extends cdk.Stack {
     // --- DevOps Agent Space + AWS Source Association ---
     const agentSpaceName = 'quickmart-demo';
 
-    // Operator role: assumed by the Slack worker Lambda to call DevOps Agent APIs
+    // Operator role: assumed by the Slack worker Lambda and validated by DevOps Agent service
     const devopsAgentOperatorRole = new iam.Role(this, 'DevOpsAgentOperatorRole', {
       roleName: 'devops-agent-demo-operator-role',
-      assumedBy: new iam.ArnPrincipal(`arn:aws:iam::${cdk.Stack.of(this).account}:root`),
+      assumedBy: new iam.CompositePrincipal(
+        new iam.ArnPrincipal(`arn:aws:iam::${cdk.Stack.of(this).account}:root`),
+        new iam.ServicePrincipal('aidevops.amazonaws.com'),
+      ),
       inlinePolicies: {
         DevOpsAgentAccess: new iam.PolicyDocument({
           statements: [
