@@ -66,12 +66,34 @@ def handler(event, context):
         )
         logger.info(f'Enabled operator app with role: {operator_role_arn}')
 
+        # Create eventChannel association to get a webhook endpoint
+        event_assoc_resp = client.associate_service(
+            agentSpaceId=space_id,
+            serviceId='event-channel',
+            configuration={'eventChannel': {}},
+        )
+        event_assoc_id = event_assoc_resp['association']['associationId']
+        logger.info(f'Created event channel association: {event_assoc_id}')
+        logger.info(f'Event channel response: {json.dumps(event_assoc_resp, default=str)}')
+
+        # Retrieve webhook URL
+        webhooks_resp = client.list_webhooks(
+            agentSpaceId=space_id,
+            associationId=event_assoc_id,
+        )
+        logger.info(f'Webhooks: {json.dumps(webhooks_resp, default=str)}')
+        webhook_url = ''
+        if webhooks_resp.get('webhooks'):
+            webhook_url = webhooks_resp['webhooks'][0].get('webhookUrl', '')
+
         return {
             'PhysicalResourceId': space_id,
             'Data': {
                 'AgentSpaceId': space_id,
                 'AssociationId': assoc_id,
                 'OperatorRoleArn': operator_role_arn,
+                'WebhookUrl': webhook_url,
+                'EventChannelAssociationId': event_assoc_id,
             },
         }
 

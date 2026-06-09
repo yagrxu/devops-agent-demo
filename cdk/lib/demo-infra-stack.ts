@@ -431,6 +431,7 @@ export class DemoInfraStack extends cdk.Stack {
         'aidevops:DisassociateService',
         'aidevops:EnableOperatorApp',
         'aidevops:DisableOperatorApp',
+        'aidevops:ListWebhooks',
         'aidevops:TagResource',
       ],
       resources: ['*'],
@@ -482,6 +483,10 @@ export class DemoInfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'DevOpsAgentOperatorRoleArn', {
       value: devopsAgentOperatorRole.roleArn,
       description: 'DevOps Agent operator role ARN',
+    });
+    new cdk.CfnOutput(this, 'DevOpsAgentWebhookUrl', {
+      value: devopsAgentSpace.getAttString('WebhookUrl'),
+      description: 'DevOps Agent webhook URL for event channel',
     });
     new cdk.CfnOutput(this, 'VpcId', { value: vpc.vpcId });
     new cdk.CfnOutput(this, 'CloudFrontDomain', {
