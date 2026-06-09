@@ -48,9 +48,9 @@ def handler(event, context):
             agentSpaceId=space_id,
             serviceId='aws',
             configuration={
-                'sourceAws': {
+                'aws': {
                     'accountId': account_id,
-                    'accountType': 'source',
+                    'accountType': 'monitor',
                     'assumableRoleArn': assume_role_arn,
                 },
             },
