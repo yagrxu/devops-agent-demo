@@ -45,26 +45,39 @@ def handler(event, context):
             space_id = resp['agentSpace']['agentSpaceId']
             logger.info(f'Created agent space: {space_id}')
 
-        assoc_resp = client.associate_service(
-            agentSpaceId=space_id,
-            serviceId='aws',
-            configuration={
-                'aws': {
-                    'accountId': account_id,
-                    'accountType': 'monitor',
-                    'assumableRoleArn': assume_role_arn,
+        try:
+            assoc_resp = client.associate_service(
+                agentSpaceId=space_id,
+                serviceId='aws',
+                configuration={
+                    'aws': {
+                        'accountId': account_id,
+                        'accountType': 'monitor',
+                        'assumableRoleArn': assume_role_arn,
+                    },
                 },
-            },
-        )
-        assoc_id = assoc_resp['association']['associationId']
-        logger.info(f'Associated AWS source: {assoc_id}')
+            )
+            assoc_id = assoc_resp['association']['associationId']
+            logger.info(f'Associated AWS source: {assoc_id}')
+        except client.exceptions.ValidationException as e:
+            if 'already exists' in str(e):
+                logger.info(f'AWS association already exists, skipping')
+                assoc_id = 'existing'
+            else:
+                raise
 
-        client.enable_operator_app(
-            agentSpaceId=space_id,
-            authFlow='iam',
-            operatorAppRoleArn=operator_role_arn,
-        )
-        logger.info(f'Enabled operator app with role: {operator_role_arn}')
+        try:
+            client.enable_operator_app(
+                agentSpaceId=space_id,
+                authFlow='iam',
+                operatorAppRoleArn=operator_role_arn,
+            )
+            logger.info(f'Enabled operator app with role: {operator_role_arn}')
+        except Exception as e:
+            if 'already' in str(e).lower() or 'conflict' in str(e).lower():
+                logger.info(f'Operator app already enabled, skipping')
+            else:
+                raise
 
         # Create eventChannel association to get a webhook endpoint
         webhook_url = 'N/A'
