@@ -329,6 +329,29 @@ export class DemoInfraStack extends cdk.Stack {
     // --- DevOps Agent Space + AWS Source Association ---
     const agentSpaceName = 'quickmart-demo';
 
+    // Operator role: assumed by the Slack worker Lambda to call DevOps Agent APIs
+    const devopsAgentOperatorRole = new iam.Role(this, 'DevOpsAgentOperatorRole', {
+      roleName: 'devops-agent-demo-operator-role',
+      assumedBy: new iam.ArnPrincipal(`arn:aws:iam::${cdk.Stack.of(this).account}:root`),
+      inlinePolicies: {
+        DevOpsAgentAccess: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: [
+                'aidevops:CreateChat',
+                'aidevops:SendMessage',
+                'aidevops:GetChat',
+                'aidevops:ListChats',
+                'aidevops:GetInvestigation',
+                'aidevops:ListInvestigations',
+              ],
+              resources: [`arn:aws:aidevops:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:agentspace/\${aws:PrincipalTag/AgentSpaceId}*`],
+            }),
+          ],
+        }),
+      },
+    });
+
     const devopsAgentSourceRole = new iam.Role(this, 'DevOpsAgentSourceRole', {
       roleName: 'devops-agent-demo-source-role',
       assumedBy: new iam.ServicePrincipal('aidevops.amazonaws.com', {
@@ -406,13 +429,15 @@ export class DemoInfraStack extends cdk.Stack {
         'aidevops:ListAgentSpaces',
         'aidevops:AssociateService',
         'aidevops:DisassociateService',
+        'aidevops:EnableOperatorApp',
+        'aidevops:DisableOperatorApp',
         'aidevops:TagResource',
       ],
       resources: ['*'],
     }));
     devopsAgentSetupFn.addToRolePolicy(new iam.PolicyStatement({
       actions: ['iam:PassRole'],
-      resources: [devopsAgentSourceRole.roleArn],
+      resources: [devopsAgentSourceRole.roleArn, devopsAgentOperatorRole.roleArn],
     }));
 
     const devopsAgentProvider = new cr.Provider(this, 'DevOpsAgentProvider', {
@@ -427,22 +452,22 @@ export class DemoInfraStack extends cdk.Stack {
         AccountId: cdk.Stack.of(this).account,
         Region: cdk.Stack.of(this).region,
         AssumeRoleArn: devopsAgentSourceRole.roleArn,
+        OperatorRoleArn: devopsAgentOperatorRole.roleArn,
       },
     });
 
     // --- Slack Integration (optional, enable via context) ---
     const webhookSecretArn = this.node.tryGetContext('slackWebhookSecretArn');
     const slackSecretArn = this.node.tryGetContext('slackSecretArn');
-    const operatorRoleArn = this.node.tryGetContext('slackOperatorRoleArn');
     const slackDeploymentId = this.node.tryGetContext('slackDeploymentId');
 
-    if (webhookSecretArn && slackSecretArn && operatorRoleArn && slackDeploymentId) {
+    if (webhookSecretArn && slackSecretArn && slackDeploymentId) {
       new DevOpsAgentSlack(this, 'SlackIntegration', {
         projectName: 'quickmart-demo',
         alarmTopicArn: alarmTopic.topicArn,
         webhookSecretArn,
         slackSecretArn,
-        operatorRoleArn,
+        operatorRoleArn: devopsAgentOperatorRole.roleArn,
         webhookSecretName: this.node.tryGetContext('slackWebhookSecretName') || 'quickmart-demo/devops-agent-webhook',
         slackSecretName: this.node.tryGetContext('slackSecretName') || 'quickmart-demo/slack-bot',
         deploymentId: slackDeploymentId,
@@ -453,6 +478,10 @@ export class DemoInfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'DevOpsAgentSpaceId', {
       value: devopsAgentSpace.getAttString('AgentSpaceId'),
       description: 'DevOps Agent space ID',
+    });
+    new cdk.CfnOutput(this, 'DevOpsAgentOperatorRoleArn', {
+      value: devopsAgentOperatorRole.roleArn,
+      description: 'DevOps Agent operator role ARN',
     });
     new cdk.CfnOutput(this, 'VpcId', { value: vpc.vpcId });
     new cdk.CfnOutput(this, 'CloudFrontDomain', {

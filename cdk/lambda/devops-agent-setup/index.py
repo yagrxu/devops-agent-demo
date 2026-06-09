@@ -15,6 +15,7 @@ def handler(event, context):
     space_name = props['SpaceName']
     account_id = props['AccountId']
     assume_role_arn = props['AssumeRoleArn']
+    operator_role_arn = props['OperatorRoleArn']
 
     client = boto3.client('devops-agent', region_name=region)
 
@@ -58,17 +59,30 @@ def handler(event, context):
         assoc_id = assoc_resp['association']['associationId']
         logger.info(f'Associated AWS source: {assoc_id}')
 
+        client.enable_operator_app(
+            agentSpaceId=space_id,
+            authFlow='iam',
+            operatorAppRoleArn=operator_role_arn,
+        )
+        logger.info(f'Enabled operator app with role: {operator_role_arn}')
+
         return {
             'PhysicalResourceId': space_id,
             'Data': {
                 'AgentSpaceId': space_id,
                 'AssociationId': assoc_id,
+                'OperatorRoleArn': operator_role_arn,
             },
         }
 
     elif request_type == 'Delete':
         space_id = event.get('PhysicalResourceId', '')
         if space_id:
+            try:
+                client.disable_operator_app(agentSpaceId=space_id)
+                logger.info(f'Disabled operator app for space: {space_id}')
+            except Exception as e:
+                logger.warning(f'Error disabling operator app (non-fatal): {e}')
             try:
                 client.delete_agent_space(agentSpaceId=space_id)
                 logger.info(f'Deleted agent space: {space_id}')

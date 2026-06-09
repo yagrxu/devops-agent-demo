@@ -36,9 +36,7 @@ BOT_TOKEN=$(jq -r '.slack.botToken' "$CONFIG_FILE")
 SIGNING_SECRET=$(jq -r '.slack.signingSecret' "$CONFIG_FILE")
 WEBHOOK_URL=$(jq -r '.webhook.url' "$CONFIG_FILE")
 HMAC_SECRET=$(jq -r '.webhook.hmacSecret' "$CONFIG_FILE")
-OPERATOR_ROLE_ARN=$(jq -r '.operatorRoleArn' "$CONFIG_FILE")
 DEPLOYMENT_ID=$(jq -r '.deploymentId' "$CONFIG_FILE")
-AGENT_SPACE_ID="${AGENT_SPACE_ID:-89d37b8a-5dda-49b7-b54e-ba205ad942f6}"
 
 PROJECT_NAME="quickmart-demo"
 WEBHOOK_SECRET_NAME="$PROJECT_NAME/devops-agent-webhook"
@@ -47,7 +45,6 @@ SLACK_SECRET_NAME="$PROJECT_NAME/slack-bot"
 echo "=== Deploying Slack Integration ==="
 echo "  Region:         $REGION"
 echo "  Deployment ID:  $DEPLOYMENT_ID"
-echo "  Operator Role:  $OPERATOR_ROLE_ARN"
 echo ""
 
 # --- Create/update Secrets Manager secrets ---
@@ -63,10 +60,45 @@ create_or_update_secret() {
   fi
 }
 
+# Phase 1: Create webhook secret (doesn't depend on stack outputs)
+echo "--- Webhook Secret ---"
 WEBHOOK_SECRET_VALUE=$(jq -n \
   --arg url "$WEBHOOK_URL" \
   --arg hmac "$HMAC_SECRET" \
   '{url: $url, hmac_secret: $hmac}')
+create_or_update_secret "$WEBHOOK_SECRET_NAME" "$WEBHOOK_SECRET_VALUE"
+
+WEBHOOK_SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$WEBHOOK_SECRET_NAME" "${AWS_OPTS[@]}" --query 'ARN' --output text)
+
+# Phase 2: Create a placeholder Slack secret (will be updated after deploy with space ID)
+echo "--- Slack Secret (placeholder) ---"
+SLACK_SECRET_VALUE=$(jq -n \
+  --arg bot_token "$BOT_TOKEN" \
+  --arg signing_secret "$SIGNING_SECRET" \
+  --arg agent_space_id "PLACEHOLDER" \
+  --arg operator_role_arn "PLACEHOLDER" \
+  '{bot_token: $bot_token, signing_secret: $signing_secret, agent_space_id: $agent_space_id, operator_role_arn: $operator_role_arn}')
+create_or_update_secret "$SLACK_SECRET_NAME" "$SLACK_SECRET_VALUE"
+
+SLACK_SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$SLACK_SECRET_NAME" "${AWS_OPTS[@]}" --query 'ARN' --output text)
+
+# Phase 3: CDK Deploy (creates agent space, operator role, and Slack infra)
+echo ""
+echo "--- CDK Deploy ---"
+cd "$CDK_DIR"
+npx cdk deploy DevOpsAgentDemoStack --require-approval never \
+  --outputs-file outputs.json \
+  -c slackWebhookSecretArn="$WEBHOOK_SECRET_ARN" \
+  -c slackSecretArn="$SLACK_SECRET_ARN" \
+  -c slackDeploymentId="$DEPLOYMENT_ID" \
+  -c slackWebhookSecretName="$WEBHOOK_SECRET_NAME" \
+  -c slackSecretName="$SLACK_SECRET_NAME"
+
+# Phase 4: Read stack outputs and update Slack secret with real values
+echo ""
+echo "--- Updating Slack secret with stack outputs ---"
+AGENT_SPACE_ID=$(jq -r '.DevOpsAgentDemoStack.DevOpsAgentSpaceId' outputs.json)
+OPERATOR_ROLE_ARN="arn:aws:iam::$(aws sts get-caller-identity "${AWS_OPTS[@]}" --query Account --output text):role/devops-agent-demo-operator-role"
 
 SLACK_SECRET_VALUE=$(jq -n \
   --arg bot_token "$BOT_TOKEN" \
@@ -74,31 +106,16 @@ SLACK_SECRET_VALUE=$(jq -n \
   --arg agent_space_id "$AGENT_SPACE_ID" \
   --arg operator_role_arn "$OPERATOR_ROLE_ARN" \
   '{bot_token: $bot_token, signing_secret: $signing_secret, agent_space_id: $agent_space_id, operator_role_arn: $operator_role_arn}')
-
-echo "--- Secrets ---"
-create_or_update_secret "$WEBHOOK_SECRET_NAME" "$WEBHOOK_SECRET_VALUE"
 create_or_update_secret "$SLACK_SECRET_NAME" "$SLACK_SECRET_VALUE"
-
-# Get secret ARNs
-WEBHOOK_SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$WEBHOOK_SECRET_NAME" "${AWS_OPTS[@]}" --query 'ARN' --output text)
-SLACK_SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$SLACK_SECRET_NAME" "${AWS_OPTS[@]}" --query 'ARN' --output text)
-
-echo ""
-echo "--- CDK Deploy ---"
-cd "$CDK_DIR"
-npx cdk deploy DevOpsAgentDemoStack --require-approval never \
-  -c slackWebhookSecretArn="$WEBHOOK_SECRET_ARN" \
-  -c slackSecretArn="$SLACK_SECRET_ARN" \
-  -c slackOperatorRoleArn="$OPERATOR_ROLE_ARN" \
-  -c slackDeploymentId="$DEPLOYMENT_ID" \
-  -c slackWebhookSecretName="$WEBHOOK_SECRET_NAME" \
-  -c slackSecretName="$SLACK_SECRET_NAME"
 
 echo ""
 echo "=== Done ==="
 echo ""
+echo "Stack outputs:"
+jq '.' outputs.json
+echo ""
 echo "NEXT STEPS:"
-echo "1. Copy the SlackApiEndpoint from the outputs above"
+echo "1. Copy the SlackApiEndpoint from above"
 echo "2. In your Slack app settings:"
 echo "   - Event Subscriptions → Request URL: <endpoint>"
 echo "   - Slash Commands → Create /devops with Request URL: <endpoint>"
