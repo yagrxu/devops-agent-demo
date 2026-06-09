@@ -1,0 +1,13 @@
+{
+  "_comment": "Copy to slack-config.json and fill in real values. slack-config.json is git-ignored.",
+  "slack": {
+    "botToken": "xoxb-YOUR-BOT-TOKEN",
+    "signingSecret": "YOUR-SLACK-SIGNING-SECRET"
+  },
+  "webhook": {
+    "url": "https://event-ai.ap-southeast-1.api.aws/webhook/generic/YOUR-WEBHOOK-ID",
+    "hmacSecret": "YOUR-BASE64-HMAC-SECRET"
+  },
+  "operatorRoleArn": "arn:aws:iam::719821274597:role/service-role/DevOpsAgentRole-XXXXX",
+  "deploymentId": "a1b2c3d4"
+}
