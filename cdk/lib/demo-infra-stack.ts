@@ -432,6 +432,7 @@ export class DemoInfraStack extends cdk.Stack {
         'aidevops:EnableOperatorApp',
         'aidevops:DisableOperatorApp',
         'aidevops:ListWebhooks',
+        'aidevops:ListAssociations',
         'aidevops:TagResource',
       ],
       resources: ['*'],
@@ -454,6 +455,7 @@ export class DemoInfraStack extends cdk.Stack {
         Region: cdk.Stack.of(this).region,
         AssumeRoleArn: devopsAgentSourceRole.roleArn,
         OperatorRoleArn: devopsAgentOperatorRole.roleArn,
+        Version: '2',
       },
     });
 

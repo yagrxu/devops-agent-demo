@@ -67,24 +67,27 @@ def handler(event, context):
         logger.info(f'Enabled operator app with role: {operator_role_arn}')
 
         # Create eventChannel association to get a webhook endpoint
-        event_assoc_resp = client.associate_service(
-            agentSpaceId=space_id,
-            serviceId='event-channel',
-            configuration={'eventChannel': {}},
-        )
-        event_assoc_id = event_assoc_resp['association']['associationId']
-        logger.info(f'Created event channel association: {event_assoc_id}')
-        logger.info(f'Event channel response: {json.dumps(event_assoc_resp, default=str)}')
+        webhook_url = 'N/A'
+        event_assoc_id = ''
+        try:
+            event_assoc_resp = client.associate_service(
+                agentSpaceId=space_id,
+                serviceId='event-channel',
+                configuration={'eventChannel': {}},
+            )
+            event_assoc_id = event_assoc_resp['association']['associationId']
+            logger.info(f'Created event channel association: {event_assoc_id}')
+            logger.info(f'Event channel response: {json.dumps(event_assoc_resp, default=str)}')
 
-        # Retrieve webhook URL
-        webhooks_resp = client.list_webhooks(
-            agentSpaceId=space_id,
-            associationId=event_assoc_id,
-        )
-        logger.info(f'Webhooks: {json.dumps(webhooks_resp, default=str)}')
-        webhook_url = ''
-        if webhooks_resp.get('webhooks'):
-            webhook_url = webhooks_resp['webhooks'][0].get('webhookUrl', '')
+            webhooks_resp = client.list_webhooks(
+                agentSpaceId=space_id,
+                associationId=event_assoc_id,
+            )
+            logger.info(f'Webhooks: {json.dumps(webhooks_resp, default=str)}')
+            if webhooks_resp.get('webhooks'):
+                webhook_url = webhooks_resp['webhooks'][0].get('webhookUrl', 'N/A')
+        except Exception as e:
+            logger.warning(f'Event channel/webhook setup failed (non-fatal): {e}')
 
         return {
             'PhysicalResourceId': space_id,
@@ -116,7 +119,42 @@ def handler(event, context):
 
     elif request_type == 'Update':
         space_id = event.get('PhysicalResourceId', '')
+        # Re-run the full setup to populate all Data attributes
+        webhook_url = 'N/A'
+        try:
+            # List associations to find event-channel
+            assocs = client.list_associations(agentSpaceId=space_id)
+            for assoc in assocs.get('associations', []):
+                if assoc.get('serviceId') == 'event-channel':
+                    webhooks_resp = client.list_webhooks(
+                        agentSpaceId=space_id,
+                        associationId=assoc['associationId'],
+                    )
+                    if webhooks_resp.get('webhooks'):
+                        webhook_url = webhooks_resp['webhooks'][0].get('webhookUrl', 'N/A')
+                    break
+            else:
+                # No event-channel yet, create one
+                event_assoc_resp = client.associate_service(
+                    agentSpaceId=space_id,
+                    serviceId='event-channel',
+                    configuration={'eventChannel': {}},
+                )
+                event_assoc_id = event_assoc_resp['association']['associationId']
+                webhooks_resp = client.list_webhooks(
+                    agentSpaceId=space_id,
+                    associationId=event_assoc_id,
+                )
+                if webhooks_resp.get('webhooks'):
+                    webhook_url = webhooks_resp['webhooks'][0].get('webhookUrl', 'N/A')
+        except Exception as e:
+            logger.warning(f'Webhook lookup on update failed (non-fatal): {e}')
+
         return {
             'PhysicalResourceId': space_id,
-            'Data': {'AgentSpaceId': space_id},
+            'Data': {
+                'AgentSpaceId': space_id,
+                'OperatorRoleArn': operator_role_arn,
+                'WebhookUrl': webhook_url,
+            },
         }
