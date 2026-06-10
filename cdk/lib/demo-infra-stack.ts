@@ -12,8 +12,7 @@ import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as cr from 'aws-cdk-lib/custom-resources';
+import * as devopsagent from 'aws-cdk-lib/aws-devopsagent';
 import * as path from 'path';
 import { Construct } from 'constructs';
 import { DevOpsAgentSlack } from './slack-construct';
@@ -329,147 +328,107 @@ export class DemoInfraStack extends cdk.Stack {
     // --- DevOps Agent Space + AWS Source Association ---
     const agentSpaceName = 'quickmart-demo';
 
-    // Operator role: assumed by the Slack worker Lambda and validated by DevOps Agent service
-    const devopsAgentOperatorRole = new iam.Role(this, 'DevOpsAgentOperatorRole', {
-      roleName: 'devops-agent-demo-operator-role',
-      assumedBy: new iam.CompositePrincipal(
-        new iam.ArnPrincipal(`arn:aws:iam::${cdk.Stack.of(this).account}:root`),
-        new iam.ServicePrincipal('aidevops.amazonaws.com', {
-          conditions: {
-            StringEquals: {
-              'aws:SourceAccount': cdk.Stack.of(this).account,
-            },
-            ArnLike: {
-              'aws:SourceArn': `arn:aws:aidevops:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:agentspace/*`,
-            },
-          },
-        }),
-      ),
-      inlinePolicies: {
-        DevOpsAgentAccess: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              actions: [
-                'aidevops:CreateChat',
-                'aidevops:SendMessage',
-                'aidevops:GetChat',
-                'aidevops:ListChats',
-                'aidevops:GetInvestigation',
-                'aidevops:ListInvestigations',
-              ],
-              resources: [`arn:aws:aidevops:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:agentspace/\${aws:PrincipalTag/AgentSpaceId}*`],
-            }),
-          ],
-        }),
-      },
-    });
-
-    const devopsAgentSourceRole = new iam.Role(this, 'DevOpsAgentSourceRole', {
-      roleName: 'devops-agent-demo-source-role',
+    // Agent Space role: allows DevOps Agent to monitor AWS resources
+    const agentSpaceRole = new iam.Role(this, 'DevOpsAgentSpaceRole', {
+      roleName: 'devops-agent-demo-space-role',
       assumedBy: new iam.ServicePrincipal('aidevops.amazonaws.com', {
         conditions: {
           StringEquals: {
-            'aws:SourceAccount': cdk.Stack.of(this).account,
+            'aws:SourceAccount': this.account,
           },
           ArnLike: {
-            'aws:SourceArn': `arn:aws:aidevops:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:agentspace/*`,
+            'aws:SourceArn': `arn:aws:aidevops:${this.region}:${this.account}:agentspace/*`,
           },
         },
       }),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AIDevOpsAgentAccessPolicy'),
+      ],
       inlinePolicies: {
-        ReadOnly: new iam.PolicyDocument({
+        AllowCreateServiceLinkedRoles: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
-              actions: [
-                'cloudwatch:GetMetricData',
-                'cloudwatch:ListMetrics',
-                'cloudwatch:DescribeAlarms',
-                'cloudwatch:GetMetricStatistics',
-                'logs:GetLogEvents',
-                'logs:FilterLogEvents',
-                'logs:DescribeLogGroups',
-                'logs:DescribeLogStreams',
-                'ecs:DescribeServices',
-                'ecs:DescribeTasks',
-                'ecs:ListTasks',
-                'elasticache:DescribeServerlessCaches',
-                'rds:DescribeDBClusters',
-                'kafka:DescribeCluster',
-                'kafka:ListClusters',
+              actions: ['iam:CreateServiceLinkedRole'],
+              resources: [
+                `arn:aws:iam::${this.account}:role/aws-service-role/resource-explorer-2.amazonaws.com/AWSServiceRoleForResourceExplorer`,
               ],
-              resources: ['*'],
             }),
           ],
         }),
       },
     });
 
-    const devopsAgentSetupFn = new lambda.Function(this, 'DevOpsAgentSetupFn', {
-      runtime: lambda.Runtime.PYTHON_3_12,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/devops-agent-setup'), {
-        bundling: {
-          image: lambda.Runtime.PYTHON_3_12.bundlingImage,
-          command: [
-            'bash', '-c',
-            'pip install --no-cache-dir -r requirements.txt -t /asset-output && cp index.py /asset-output/',
-          ],
-          local: {
-            tryBundle(outputDir: string) {
-              try {
-                const { execSync } = require('child_process');
-                execSync(
-                  `pip install --no-cache-dir -r requirements.txt -t "${outputDir}" && cp index.py "${outputDir}"`,
-                  { cwd: path.join(__dirname, '../lambda/devops-agent-setup'), stdio: 'pipe' },
-                );
-                return true;
-              } catch {
-                return false;
-              }
-            },
-          },
-        },
-      }),
-      timeout: cdk.Duration.minutes(5),
-      logRetention: logs.RetentionDays.THREE_DAYS,
-    });
-    devopsAgentSetupFn.addToRolePolicy(new iam.PolicyStatement({
-      actions: [
-        'aidevops:CreateAgentSpace',
-        'aidevops:DeleteAgentSpace',
-        'aidevops:GetAgentSpace',
-        'aidevops:ListAgentSpaces',
-        'aidevops:AssociateService',
-        'aidevops:DisassociateService',
-        'aidevops:EnableOperatorApp',
-        'aidevops:DisableOperatorApp',
-        'aidevops:ListWebhooks',
-        'aidevops:ListAssociations',
-        'aidevops:TagResource',
+    // Operator role: assumed by Slack worker Lambda and validated by DevOps Agent
+    const operatorRole = new iam.Role(this, 'DevOpsAgentOperatorRole', {
+      roleName: 'devops-agent-demo-operator-role',
+      assumedBy: new iam.CompositePrincipal(
+        new iam.ArnPrincipal(`arn:aws:iam::${this.account}:root`),
+        new iam.ServicePrincipal('aidevops.amazonaws.com'),
+      ),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AIDevOpsOperatorAppAccessPolicy'),
       ],
-      resources: ['*'],
-    }));
-    devopsAgentSetupFn.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['iam:PassRole'],
-      resources: [devopsAgentSourceRole.roleArn, devopsAgentOperatorRole.roleArn],
-    }));
-
-    const devopsAgentProvider = new cr.Provider(this, 'DevOpsAgentProvider', {
-      onEventHandler: devopsAgentSetupFn,
-      logRetention: logs.RetentionDays.THREE_DAYS,
     });
+    // Override trust policy to include sts:TagSession + conditions
+    const operatorTrustPolicy = new iam.PolicyDocument({
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          principals: [new iam.ServicePrincipal('aidevops.amazonaws.com')],
+          actions: ['sts:AssumeRole', 'sts:TagSession'],
+          conditions: {
+            StringEquals: { 'aws:SourceAccount': this.account },
+            ArnLike: { 'aws:SourceArn': `arn:aws:aidevops:${this.region}:${this.account}:agentspace/*` },
+          },
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          principals: [new iam.ArnPrincipal(`arn:aws:iam::${this.account}:root`)],
+          actions: ['sts:AssumeRole', 'sts:TagSession'],
+        }),
+      ],
+    });
+    (operatorRole.node.defaultChild as iam.CfnRole).assumeRolePolicyDocument = operatorTrustPolicy;
 
-    const devopsAgentSpace = new cdk.CustomResource(this, 'DevOpsAgentSpace', {
-      serviceToken: devopsAgentProvider.serviceToken,
-      properties: {
-        SpaceName: agentSpaceName,
-        AccountId: cdk.Stack.of(this).account,
-        Region: cdk.Stack.of(this).region,
-        AssumeRoleArn: devopsAgentSourceRole.roleArn,
-        OperatorRoleArn: devopsAgentOperatorRole.roleArn,
-        Version: '2',
+    // Agent Space
+    const agentSpace = new devopsagent.CfnAgentSpace(this, 'AgentSpace', {
+      name: agentSpaceName,
+      description: 'QuickMart flash-sale cascade demo for HK Summit 2026',
+      operatorApp: {
+        iam: {
+          operatorAppRoleArn: operatorRole.roleArn,
+        },
       },
     });
+
+    // AWS association (monitor this account)
+    const awsAssociation = new devopsagent.CfnAssociation(this, 'AwsAssociation', {
+      agentSpaceId: agentSpace.ref,
+      serviceId: 'aws',
+      configuration: {
+        aws: {
+          assumableRoleArn: agentSpaceRole.roleArn,
+          accountId: this.account,
+          accountType: 'monitor',
+          resources: [],
+        },
+      },
+    });
+    awsAssociation.addDependency(agentSpace);
+
+    // Event channel webhook
+    const eventChannelService = new devopsagent.CfnService(this, 'EventChannelService', {
+      serviceType: 'eventChannel',
+    });
+
+    const eventChannelAssociation = new devopsagent.CfnAssociation(this, 'EventChannelAssociation', {
+      agentSpaceId: agentSpace.ref,
+      serviceId: eventChannelService.attrServiceId,
+      configuration: {
+        eventChannel: {},
+      },
+    });
+    eventChannelAssociation.addDependency(agentSpace);
 
     // --- Slack Integration (optional, enable via context) ---
     const webhookSecretArn = this.node.tryGetContext('slackWebhookSecretArn');
@@ -482,7 +441,7 @@ export class DemoInfraStack extends cdk.Stack {
         alarmTopicArn: alarmTopic.topicArn,
         webhookSecretArn,
         slackSecretArn,
-        operatorRoleArn: devopsAgentOperatorRole.roleArn,
+        operatorRoleArn: operatorRole.roleArn,
         webhookSecretName: this.node.tryGetContext('slackWebhookSecretName') || 'quickmart-demo/devops-agent-webhook',
         slackSecretName: this.node.tryGetContext('slackSecretName') || 'quickmart-demo/slack-bot',
         deploymentId: slackDeploymentId,
@@ -491,16 +450,12 @@ export class DemoInfraStack extends cdk.Stack {
 
     // --- Outputs ---
     new cdk.CfnOutput(this, 'DevOpsAgentSpaceId', {
-      value: devopsAgentSpace.getAttString('AgentSpaceId'),
+      value: agentSpace.ref,
       description: 'DevOps Agent space ID',
     });
     new cdk.CfnOutput(this, 'DevOpsAgentOperatorRoleArn', {
-      value: devopsAgentOperatorRole.roleArn,
+      value: operatorRole.roleArn,
       description: 'DevOps Agent operator role ARN',
-    });
-    new cdk.CfnOutput(this, 'DevOpsAgentWebhookUrl', {
-      value: devopsAgentSpace.getAttString('WebhookUrl'),
-      description: 'DevOps Agent webhook URL for event channel',
     });
     new cdk.CfnOutput(this, 'VpcId', { value: vpc.vpcId });
     new cdk.CfnOutput(this, 'CloudFrontDomain', {
