@@ -50,10 +50,21 @@ jobs:
       - name: CDK Synth
         working-directory: cdk
         run: npx cdk synth
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
 
       - name: CDK Deploy
         working-directory: cdk
-        run: npx cdk deploy --all --require-approval never --outputs-file outputs.json
+        run: |
+          CONTEXT_ARGS=""
+          if [ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_SIGNING_SECRET" ]; then
+            CONTEXT_ARGS="-c slackBotToken=$SLACK_BOT_TOKEN -c slackSigningSecret=$SLACK_SIGNING_SECRET"
+          fi
+          npx cdk deploy --all --require-approval never --outputs-file outputs.json $CONTEXT_ARGS
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
 
       - name: Print outputs
         working-directory: cdk

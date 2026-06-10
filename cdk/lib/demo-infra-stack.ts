@@ -470,20 +470,40 @@ export class DemoInfraStack extends cdk.Stack {
     });
 
     // --- Slack Integration (optional, enable via context) ---
-    const webhookSecretArn = this.node.tryGetContext('slackWebhookSecretArn');
-    const slackSecretArn = this.node.tryGetContext('slackSecretArn');
-    const slackDeploymentId = this.node.tryGetContext('slackDeploymentId');
+    const slackBotToken = this.node.tryGetContext('slackBotToken');
+    const slackSigningSecret = this.node.tryGetContext('slackSigningSecret');
 
-    if (webhookSecretArn && slackSecretArn && slackDeploymentId) {
+    if (slackBotToken && slackSigningSecret) {
+      const webhookSecretName = 'quickmart-demo/devops-agent-webhook';
+      const slackSecretName = 'quickmart-demo/slack-bot';
+
+      const webhookSecret = new cdk.aws_secretsmanager.Secret(this, 'WebhookSecret', {
+        secretName: webhookSecretName,
+        secretStringValue: cdk.SecretValue.unsafePlainText(JSON.stringify({
+          url: webhookResource.getAttString('WebhookUrl'),
+          hmac_secret: 'placeholder',
+        })),
+      });
+
+      const slackSecret = new cdk.aws_secretsmanager.Secret(this, 'SlackSecret', {
+        secretName: slackSecretName,
+        secretStringValue: cdk.SecretValue.unsafePlainText(JSON.stringify({
+          bot_token: slackBotToken,
+          signing_secret: slackSigningSecret,
+          agent_space_id: agentSpace.ref,
+          operator_role_arn: operatorRole.roleArn,
+        })),
+      });
+
       new DevOpsAgentSlack(this, 'SlackIntegration', {
         projectName: 'quickmart-demo',
         alarmTopicArn: alarmTopic.topicArn,
-        webhookSecretArn,
-        slackSecretArn,
+        webhookSecretArn: webhookSecret.secretArn,
+        slackSecretArn: slackSecret.secretArn,
         operatorRoleArn: operatorRole.roleArn,
-        webhookSecretName: this.node.tryGetContext('slackWebhookSecretName') || 'quickmart-demo/devops-agent-webhook',
-        slackSecretName: this.node.tryGetContext('slackSecretName') || 'quickmart-demo/slack-bot',
-        deploymentId: slackDeploymentId,
+        webhookSecretName,
+        slackSecretName,
+        deploymentId: 'f7e2a91c',
       });
     }
 
