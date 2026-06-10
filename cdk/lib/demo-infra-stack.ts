@@ -12,6 +12,8 @@ import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cr from 'aws-cdk-lib/custom-resources';
 import * as devopsagent from 'aws-cdk-lib/aws-devopsagent';
 import * as path from 'path';
 import { Construct } from 'constructs';
@@ -416,8 +418,56 @@ export class DemoInfraStack extends cdk.Stack {
     });
     awsAssociation.addDependency(agentSpace);
 
-    // Note: eventChannel webhook is not supported via CloudFormation.
-    // Create it via the DevOps Agent console or API after deployment.
+    // Event channel webhook (not supported in CFN, use custom resource with API)
+    const webhookFn = new lambda.Function(this, 'WebhookSetupFn', {
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/devops-agent-webhook-setup'), {
+        bundling: {
+          image: lambda.Runtime.PYTHON_3_12.bundlingImage,
+          command: ['bash', '-c', 'pip install --no-cache-dir -r requirements.txt -t /asset-output && cp index.py /asset-output/'],
+          local: {
+            tryBundle(outputDir: string) {
+              try {
+                const { execSync } = require('child_process');
+                execSync(
+                  `pip install --no-cache-dir -r requirements.txt -t "${outputDir}" && cp index.py "${outputDir}"`,
+                  { cwd: path.join(__dirname, '../lambda/devops-agent-webhook-setup'), stdio: 'pipe' },
+                );
+                return true;
+              } catch { return false; }
+            },
+          },
+        },
+      }),
+      timeout: cdk.Duration.minutes(2),
+      logRetention: logs.RetentionDays.THREE_DAYS,
+    });
+    webhookFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: [
+        'aidevops:RegisterService',
+        'aidevops:DeregisterService',
+        'aidevops:ListServices',
+        'aidevops:AssociateService',
+        'aidevops:DisassociateService',
+        'aidevops:ListAssociations',
+        'aidevops:ListWebhooks',
+      ],
+      resources: ['*'],
+    }));
+
+    const webhookProvider = new cr.Provider(this, 'WebhookProvider', {
+      onEventHandler: webhookFn,
+      logRetention: logs.RetentionDays.THREE_DAYS,
+    });
+
+    const webhookResource = new cdk.CustomResource(this, 'EventChannelWebhook', {
+      serviceToken: webhookProvider.serviceToken,
+      properties: {
+        AgentSpaceId: agentSpace.ref,
+        Region: this.region,
+      },
+    });
 
     // --- Slack Integration (optional, enable via context) ---
     const webhookSecretArn = this.node.tryGetContext('slackWebhookSecretArn');
@@ -445,6 +495,10 @@ export class DemoInfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'DevOpsAgentOperatorRoleArn', {
       value: operatorRole.roleArn,
       description: 'DevOps Agent operator role ARN',
+    });
+    new cdk.CfnOutput(this, 'DevOpsAgentWebhookUrl', {
+      value: webhookResource.getAttString('WebhookUrl'),
+      description: 'DevOps Agent event channel webhook URL',
     });
     new cdk.CfnOutput(this, 'VpcId', { value: vpc.vpcId });
     new cdk.CfnOutput(this, 'CloudFrontDomain', {
