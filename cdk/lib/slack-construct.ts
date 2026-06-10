@@ -92,7 +92,7 @@ export class DevOpsAgentSlack extends Construct {
       runtime: lambda.Runtime.PYTHON_3_12,
       architecture: lambda.Architecture.ARM_64,
       memorySize: 256,
-      timeout: cdk.Duration.seconds(60),
+      timeout: cdk.Duration.seconds(120),
       handler: 'handler.lambda_handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/slack-worker'), {
         bundling: {
