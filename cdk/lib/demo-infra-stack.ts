@@ -416,19 +416,8 @@ export class DemoInfraStack extends cdk.Stack {
     });
     awsAssociation.addDependency(agentSpace);
 
-    // Event channel webhook
-    const eventChannelService = new devopsagent.CfnService(this, 'EventChannelService', {
-      serviceType: 'eventChannel',
-    });
-
-    const eventChannelAssociation = new devopsagent.CfnAssociation(this, 'EventChannelAssociation', {
-      agentSpaceId: agentSpace.ref,
-      serviceId: eventChannelService.attrServiceId,
-      configuration: {
-        eventChannel: {},
-      },
-    });
-    eventChannelAssociation.addDependency(agentSpace);
+    // Note: eventChannel webhook is not supported via CloudFormation.
+    // Create it via the DevOps Agent console or API after deployment.
 
     // --- Slack Integration (optional, enable via context) ---
     const webhookSecretArn = this.node.tryGetContext('slackWebhookSecretArn');
