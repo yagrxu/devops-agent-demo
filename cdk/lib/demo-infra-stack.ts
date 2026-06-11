@@ -238,7 +238,7 @@ export class DemoInfraStack extends cdk.Stack {
       metric: new cloudwatch.Metric({
         namespace: 'AWS/ElastiCache',
         metricName: 'BytesUsedForCache',
-        dimensionsMap: { CacheClusterId: 'quickmart-demo-redis' },
+        dimensionsMap: { clusterId: 'quickmart-demo-redis' },
         statistic: 'Average',
         period: cdk.Duration.minutes(1),
       }),
@@ -255,7 +255,7 @@ export class DemoInfraStack extends cdk.Stack {
       metric: new cloudwatch.Metric({
         namespace: 'AWS/ElastiCache',
         metricName: 'Evictions',
-        dimensionsMap: { CacheClusterId: 'quickmart-demo-redis' },
+        dimensionsMap: { clusterId: 'quickmart-demo-redis' },
         statistic: 'Sum',
         period: cdk.Duration.minutes(1),
       }),

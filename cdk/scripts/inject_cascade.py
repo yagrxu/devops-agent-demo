@@ -10,13 +10,13 @@ Simulates cascading failure by:
 
 Usage:
     # Full cascade (8 minutes to alarm trigger)
-    python inject_cascade.py --mode full --profile cloudops-demo --region ap-southeast-1
+    python inject_cascade.py --mode full --profile cloudops-demo --region us-east-1
 
     # Quick demo (push metrics directly to trigger alarms in 2 min)
-    python inject_cascade.py --mode quick --profile cloudops-demo --region ap-southeast-1
+    python inject_cascade.py --mode quick --profile cloudops-demo --region us-east-1
 
     # Reset (clear metrics, set alarms to OK)
-    python inject_cascade.py --mode reset --profile cloudops-demo --region ap-southeast-1
+    python inject_cascade.py --mode reset --profile cloudops-demo --region us-east-1
 
 Prerequisites:
     pip install boto3 redis psycopg2-binary
@@ -31,9 +31,8 @@ from datetime import datetime, timezone
 import boto3
 
 
-REGION = 'ap-southeast-1'
+REGION = 'us-east-1'
 REDIS_CACHE_NAME = 'quickmart-demo-redis'
-AURORA_CLUSTER = 'devopsagentdemostack-demoaurora'  # CDK-generated name pattern
 
 ALARMS = [
     'quickmart-demo-redis-memory-high',

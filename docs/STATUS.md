@@ -51,11 +51,15 @@ automated), **region drift in helper scripts**, and a **full end-to-end rehearsa
      Agent for this demo (console? API?), then either codify that or document the
      manual steps in the operator runbook.
 
-2. **Region drift in helper scripts.** `inject_cascade.py` and `register_skills.py`
-   default to `ap-southeast-1`, but the stack deploys to `us-east-1`. Always pass
-   `--region us-east-1`, or fix the defaults. `inject_cascade.py` also hardcodes
-   `AURORA_CLUSTER = 'devopsagentdemostack-demoaurora'` (a guessed name) — verify
-   against the real cluster identifier.
+2. **Region drift in helper scripts.** ✅ Fixed 2026-06-11: `inject_cascade.py`
+   and `register_skills.py` now default to `us-east-1`, and the dead
+   `AURORA_CLUSTER` constant was removed. Still pass `--profile cloudops-demo`.
+
+   Also fixed 2026-06-11: the two Redis alarms were wired to dimension
+   `CacheClusterId` (node-based) but ElastiCache **Serverless** emits with
+   `clusterId` — so they never received data and could never fire. Corrected to
+   `clusterId`. (Note: the 4 GB `BytesUsedForCache` threshold is still
+   unrealistic for the lock-key load and may need right-sizing for a visible demo.)
 
 3. **Full end-to-end rehearsal not yet confirmed.** The stack is deployed and
    healthy in `719821274597` (`cloudops-demo`), with all alarms at `OK`. What has

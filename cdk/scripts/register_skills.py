@@ -6,10 +6,10 @@ Registers the 3 skills (Redis, RDS, MSK) with the DevOps Agent service
 and creates an agent space with appropriate configurations.
 
 Usage:
-    python register_skills.py --profile cloudops-demo --region ap-southeast-1 --agent-space-id <ID>
+    python register_skills.py --profile cloudops-demo --region us-east-1 --agent-space-id <ID>
 
     # To create a new agent space first:
-    python register_skills.py --profile cloudops-demo --region ap-southeast-1 --create-space
+    python register_skills.py --profile cloudops-demo --region us-east-1 --create-space
 """
 
 import argparse
@@ -19,7 +19,7 @@ import sys
 import boto3
 
 
-REGION = 'ap-southeast-1'
+REGION = 'us-east-1'
 
 # Skill configurations matching the skills/ directory definitions
 SKILLS = {
@@ -105,7 +105,7 @@ SKILLS = {
         'title': 'MSK Business Topic Lag',
         'description': 'Diagnose MSK consumer lag through business-critical topic impact',
         'config': {
-            'cluster_arn': 'arn:aws:kafka:ap-southeast-1:ACCOUNT:cluster/quickmart-demo-msk',
+            'cluster_arn': 'arn:aws:kafka:us-east-1:ACCOUNT:cluster/quickmart-demo-msk',
             'topics': [
                 {
                     'name': 'order.placed',
