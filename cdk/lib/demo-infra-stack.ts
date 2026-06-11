@@ -87,6 +87,7 @@ export class DemoInfraStack extends cdk.Stack {
       }),
       serverlessV2MinCapacity: 0.5,
       serverlessV2MaxCapacity: 4,
+      monitoringInterval: cdk.Duration.seconds(60),
       writer: rds.ClusterInstance.serverlessV2('writer', {
         publiclyAccessible: false,
       }),
