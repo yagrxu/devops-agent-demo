@@ -87,7 +87,13 @@ export class DemoInfraStack extends cdk.Stack {
       }),
       serverlessV2MinCapacity: 0.5,
       serverlessV2MaxCapacity: 4,
+      // Enhanced Monitoring at 60s granularity (required companion of Database Insights Advanced)
       monitoringInterval: cdk.Duration.seconds(60),
+      // Database Insights "Advanced" mode (matches the RDS console "Advanced" setting):
+      // enables Performance Insights automatically and requires 15-month (465-day)
+      // retention, plus the CloudWatch Database Insights advanced dashboards/metrics.
+      databaseInsightsMode: rds.DatabaseInsightsMode.ADVANCED,
+      performanceInsightRetention: rds.PerformanceInsightRetention.MONTHS_15,
       writer: rds.ClusterInstance.serverlessV2('writer', {
         publiclyAccessible: false,
       }),
