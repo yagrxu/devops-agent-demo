@@ -14,6 +14,8 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as cr from 'aws-cdk-lib/custom-resources';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as devopsagent from 'aws-cdk-lib/aws-devopsagent';
 import * as path from 'path';
 import { Construct } from 'constructs';
@@ -513,6 +515,34 @@ export class DemoInfraStack extends cdk.Stack {
         deploymentId: 'f7e2a91c',
       });
     }
+
+    // --- Scheduled Injection (every 2 hours: warmup → inject → reset) ---
+    const injectionFn = new lambda.Function(this, 'ScheduledInjectionFn', {
+      functionName: 'quickmart-demo-scheduled-injection',
+      runtime: lambda.Runtime.PYTHON_3_12,
+      architecture: lambda.Architecture.ARM_64,
+      handler: 'handler.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/scheduled-injection')),
+      memorySize: 256,
+      timeout: cdk.Duration.minutes(15),
+      logRetention: logs.RetentionDays.THREE_DAYS,
+      environment: {
+        CF_DOMAIN: distribution.distributionDomainName,
+        WARMUP_SECONDS: '30',
+        WARMUP_CONCURRENCY: '10',
+        RESET_DELAY_SECONDS: '600',
+      },
+    });
+    injectionFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['cloudwatch:PutMetricData', 'cloudwatch:SetAlarmState'],
+      resources: ['*'],
+    }));
+
+    new events.Rule(this, 'InjectionSchedule', {
+      ruleName: 'quickmart-demo-injection-schedule',
+      schedule: events.Schedule.rate(cdk.Duration.hours(2)),
+      targets: [new targets.LambdaFunction(injectionFn)],
+    });
 
     // --- Outputs ---
     new cdk.CfnOutput(this, 'DevOpsAgentSpaceId', {
