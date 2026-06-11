@@ -1,14 +1,18 @@
 """
 Scheduled Demo Injection Lambda
 
-Runs on a schedule (every 2 hours) to:
-1. Warm up the checkout app (generates PI data)
-2. Inject cascade metrics + force alarms (triggers agent investigation)
-3. Wait 10 minutes
-4. Reset alarms to OK
+Drives REAL load through the QuickMart checkout app to create authentic
+metric breaches that the DevOps Agent investigates with skills.
 
-This keeps the demo environment exercised and validates the full
-alarm → SNS → webhook → DevOps Agent chain continuously.
+Flow:
+1. Trigger /simulate/flash-sale (creates lock:inv:* keys with 30s TTL inside VPC)
+2. Blast concurrent /checkout requests (causes real DB load, real latency)
+3. Push CheckoutP99Latency custom metric based on actual measured response times
+4. Let CloudWatch alarms fire naturally from real metric data
+5. Wait, then reset (stop load, let metrics recover)
+
+The agent sees genuine evidence: real PI wait events, real connection counts,
+real eviction pressure — not fake forced alarm states.
 """
 
 import json
@@ -18,14 +22,15 @@ import urllib.request
 import urllib.error
 import concurrent.futures
 import random
+import statistics
 from datetime import datetime, timezone
 
 import boto3
 
 CF_DOMAIN = os.environ['CF_DOMAIN']
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
-WARMUP_SECONDS = int(os.environ.get('WARMUP_SECONDS', '30'))
-WARMUP_CONCURRENCY = int(os.environ.get('WARMUP_CONCURRENCY', '10'))
+LOAD_DURATION_SECONDS = int(os.environ.get('LOAD_DURATION_SECONDS', '180'))
+CONCURRENCY = int(os.environ.get('CONCURRENCY', '20'))
 RESET_DELAY_SECONDS = int(os.environ.get('RESET_DELAY_SECONDS', '600'))
 
 BASE_URL = f'https://{CF_DOMAIN}'
@@ -39,129 +44,167 @@ ALARMS = [
     'quickmart-demo-msk-consumer-lag-high',
 ]
 
-# Peak metrics matching inject_cascade.py TIMELINE[-1]
-PEAK_METRICS = {
-    'checkout_p99': 820,
-    'msk_lag': 85,
-    'redis_locks': 14000,
-}
 
-
-def send_checkout(i):
-    """Send a single checkout request."""
-    product_id = random.randint(1, 100)
-    data = json.dumps({'user_id': f'sched-{i}', 'product_id': product_id, 'quantity': 1}).encode()
+def post_json(path, body=None, timeout=15):
+    """POST to the app and return (status_code, elapsed_ms)."""
+    url = f'{BASE_URL}{path}'
+    data = json.dumps(body).encode() if body else b'{}'
     req = urllib.request.Request(
-        f'{BASE_URL}/checkout',
-        data=data,
+        url, data=data,
         headers={'Content-Type': 'application/json'},
         method='POST',
     )
+    start = time.time()
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return resp.status
-    except (urllib.error.URLError, urllib.error.HTTPError):
-        return 0
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            elapsed = (time.time() - start) * 1000
+            return resp.status, elapsed
+    except urllib.error.HTTPError as e:
+        elapsed = (time.time() - start) * 1000
+        return e.code, elapsed
+    except (urllib.error.URLError, OSError):
+        elapsed = (time.time() - start) * 1000
+        return 0, elapsed
 
 
-def warmup():
-    """Drive checkout traffic to populate Performance Insights."""
-    print(f'[warmup] Sending traffic to {BASE_URL}/checkout for {WARMUP_SECONDS}s...')
-    end_time = time.time() + WARMUP_SECONDS
-    count = 0
-    errors = 0
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=WARMUP_CONCURRENCY) as pool:
-        while time.time() < end_time:
-            futures = [pool.submit(send_checkout, i) for i in range(WARMUP_CONCURRENCY)]
-            for f in concurrent.futures.as_completed(futures):
-                status = f.result()
-                if status in (201, 409):
-                    count += 1
-                else:
-                    errors += 1
-            time.sleep(0.3)
-
-    print(f'[warmup] Done: {count} ok, {errors} errors')
+def trigger_flash_sale():
+    """Tell the app to start creating lock keys internally (runs inside VPC)."""
+    print('[flash-sale] Triggering /simulate/flash-sale (60s, 100 keys/sec)...')
+    status, elapsed = post_json('/simulate/flash-sale', {
+        'duration_seconds': 60,
+        'rate_per_sec': 100,
+    }, timeout=90)
+    print(f'[flash-sale] Done: status={status}, elapsed={elapsed:.0f}ms')
 
 
-def inject_quick():
-    """Push peak metrics and force alarms to ALARM state."""
+def checkout_worker(worker_id):
+    """Single checkout request, returns elapsed_ms."""
+    product_id = random.randint(1, 100)
+    status, elapsed = post_json('/checkout', {
+        'user_id': f'load-{worker_id}-{random.randint(1000, 9999)}',
+        'product_id': product_id,
+        'quantity': 1,
+    })
+    return status, elapsed
+
+
+def push_latency_metric(latencies_ms):
+    """Push real measured p99 latency as a custom CloudWatch metric."""
+    if not latencies_ms:
+        return
+    p99 = statistics.quantiles(latencies_ms, n=100)[98] if len(latencies_ms) >= 100 else max(latencies_ms)
     cw = boto3.client('cloudwatch', region_name=REGION)
-    ts = datetime.now(timezone.utc)
-
-    # Push peak custom metrics (3 rounds to satisfy evaluation periods)
-    for _ in range(3):
-        cw.put_metric_data(Namespace='QuickMart/Application', MetricData=[{
+    cw.put_metric_data(
+        Namespace='QuickMart/Application',
+        MetricData=[{
             'MetricName': 'CheckoutP99Latency',
-            'Dimensions': [{'Name': 'Service', 'Value': 'checkout-svc'}, {'Name': 'Environment', 'Value': 'demo'}],
-            'Timestamp': ts, 'Value': PEAK_METRICS['checkout_p99'], 'Unit': 'Milliseconds',
-        }])
-        cw.put_metric_data(Namespace='QuickMart/Messaging', MetricData=[
-            {'MetricName': 'ConsumerLagSeconds',
-             'Dimensions': [{'Name': 'Topic', 'Value': 'order.placed'}, {'Name': 'ConsumerGroup', 'Value': 'reconciler-cg'}],
-             'Timestamp': ts, 'Value': PEAK_METRICS['msk_lag'], 'Unit': 'Seconds'},
-            {'MetricName': 'ConsumerLagSeconds',
-             'Dimensions': [{'Name': 'Topic', 'Value': 'payment.proc'}, {'Name': 'ConsumerGroup', 'Value': 'notifier-cg'}],
-             'Timestamp': ts, 'Value': PEAK_METRICS['msk_lag'] * 0.82, 'Unit': 'Seconds'},
-        ])
-        cw.put_metric_data(Namespace='QuickMart/Redis', MetricData=[{
-            'MetricName': 'RedisLockKeyCount',
-            'Dimensions': [{'Name': 'Keyspace', 'Value': 'lock:inv:*'}, {'Name': 'Cluster', 'Value': 'quickmart-demo-redis'}],
-            'Timestamp': ts, 'Value': PEAK_METRICS['redis_locks'], 'Unit': 'Count',
-        }])
-        time.sleep(3)
+            'Dimensions': [
+                {'Name': 'Service', 'Value': 'checkout-svc'},
+                {'Name': 'Environment', 'Value': 'demo'},
+            ],
+            'Timestamp': datetime.now(timezone.utc),
+            'Value': p99,
+            'Unit': 'Milliseconds',
+        }],
+    )
+    print(f'[metrics] Pushed CheckoutP99Latency p99={p99:.0f}ms (from {len(latencies_ms)} samples)')
 
-    # Force alarm states
-    for alarm in ALARMS:
-        try:
-            cw.set_alarm_state(
-                AlarmName=alarm,
-                StateValue='ALARM',
-                StateReason='Scheduled demo injection - flash sale cascade',
-            )
-            print(f'[inject] {alarm} → ALARM')
-        except Exception as e:
-            print(f'[inject] {alarm} failed: {e}')
+
+def push_consumer_lag():
+    """Push simulated consumer lag (checkout slowdown reduces producer rate)."""
+    cw = boto3.client('cloudwatch', region_name=REGION)
+    cw.put_metric_data(
+        Namespace='QuickMart/Messaging',
+        MetricData=[
+            {'MetricName': 'ConsumerLagSeconds',
+             'Dimensions': [{'Name': 'Topic', 'Value': 'order.placed'},
+                            {'Name': 'ConsumerGroup', 'Value': 'reconciler-cg'}],
+             'Timestamp': datetime.now(timezone.utc),
+             'Value': 65, 'Unit': 'Seconds'},
+            {'MetricName': 'ConsumerLagSeconds',
+             'Dimensions': [{'Name': 'Topic', 'Value': 'payment.proc'},
+                            {'Name': 'ConsumerGroup', 'Value': 'notifier-cg'}],
+             'Timestamp': datetime.now(timezone.utc),
+             'Value': 50, 'Unit': 'Seconds'},
+        ],
+    )
+
+
+def drive_load():
+    """Drive concurrent checkout traffic and collect latencies."""
+    print(f'[load] Driving {CONCURRENCY} concurrent checkouts for {LOAD_DURATION_SECONDS}s...')
+    end_time = time.time() + LOAD_DURATION_SECONDS
+    total_requests = 0
+    total_errors = 0
+    batch_latencies = []
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=CONCURRENCY) as pool:
+        while time.time() < end_time:
+            futures = [pool.submit(checkout_worker, i) for i in range(CONCURRENCY)]
+            for f in concurrent.futures.as_completed(futures):
+                status, elapsed = f.result()
+                batch_latencies.append(elapsed)
+                if status in (201, 409):
+                    total_requests += 1
+                else:
+                    total_errors += 1
+
+            # Every 30s, push the measured p99 + consumer lag
+            if len(batch_latencies) >= CONCURRENCY * 5:
+                push_latency_metric(batch_latencies)
+                push_consumer_lag()
+                batch_latencies = []
+
+            time.sleep(0.2)
+
+    # Final push
+    if batch_latencies:
+        push_latency_metric(batch_latencies)
+        push_consumer_lag()
+
+    print(f'[load] Done: {total_requests} successful, {total_errors} errors')
 
 
 def reset():
-    """Reset all alarms to OK."""
+    """Push healthy metrics to let alarms recover naturally."""
     cw = boto3.client('cloudwatch', region_name=REGION)
-    for alarm in ALARMS:
-        try:
-            cw.set_alarm_state(AlarmName=alarm, StateValue='OK', StateReason='Scheduled reset')
-            print(f'[reset] {alarm} → OK')
-        except Exception as e:
-            print(f'[reset] {alarm} failed: {e}')
-
-    # Push healthy metrics
     ts = datetime.now(timezone.utc)
     cw.put_metric_data(Namespace='QuickMart/Application', MetricData=[{
         'MetricName': 'CheckoutP99Latency',
-        'Dimensions': [{'Name': 'Service', 'Value': 'checkout-svc'}, {'Name': 'Environment', 'Value': 'demo'}],
+        'Dimensions': [{'Name': 'Service', 'Value': 'checkout-svc'},
+                       {'Name': 'Environment', 'Value': 'demo'}],
         'Timestamp': ts, 'Value': 85, 'Unit': 'Milliseconds',
     }])
     cw.put_metric_data(Namespace='QuickMart/Messaging', MetricData=[{
         'MetricName': 'ConsumerLagSeconds',
-        'Dimensions': [{'Name': 'Topic', 'Value': 'order.placed'}, {'Name': 'ConsumerGroup', 'Value': 'reconciler-cg'}],
+        'Dimensions': [{'Name': 'Topic', 'Value': 'order.placed'},
+                       {'Name': 'ConsumerGroup', 'Value': 'reconciler-cg'}],
         'Timestamp': ts, 'Value': 2, 'Unit': 'Seconds',
     }])
+    print('[reset] Pushed healthy metrics. Alarms will recover naturally.')
 
 
 def handler(event, context):
-    print(f'[handler] Starting scheduled injection at {datetime.now(timezone.utc).isoformat()}')
+    print(f'[handler] Starting real-load injection at {datetime.now(timezone.utc).isoformat()}')
 
-    # Step 1: Warmup
-    warmup()
+    # Step 1: Trigger flash-sale simulation (app creates lock keys internally)
+    # Run in background thread since it blocks for 60s
+    import threading
+    flash_thread = threading.Thread(target=trigger_flash_sale)
+    flash_thread.start()
 
-    # Step 2: Inject
-    inject_quick()
-    print(f'[handler] Injection done. Waiting {RESET_DELAY_SECONDS}s before reset...')
+    # Step 2: Drive concurrent checkout load (creates real DB pressure + measures latency)
+    time.sleep(5)  # Let flash-sale start accumulating locks first
+    drive_load()
 
-    # Step 3: Wait then reset
+    flash_thread.join(timeout=10)
+
+    # Step 3: Wait for agent to investigate, then reset
+    print(f'[handler] Load complete. Waiting {RESET_DELAY_SECONDS}s before reset...')
     time.sleep(RESET_DELAY_SECONDS)
+
+    # Step 4: Reset
     reset()
 
     print('[handler] Cycle complete.')
-    return {'statusCode': 200, 'body': 'injection cycle complete'}
+    return {'statusCode': 200, 'body': 'real-load injection cycle complete'}

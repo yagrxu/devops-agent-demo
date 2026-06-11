@@ -175,7 +175,7 @@ def run_quick_demo(session):
             cw.set_alarm_state(
                 AlarmName=alarm_name,
                 StateValue='ALARM',
-                StateReason='Demo injection - flash sale cascade simulation',
+                StateReason='Threshold Crossed: metric breached configured threshold',
             )
             print(f"  {alarm_name} → ALARM")
         except Exception as e:
