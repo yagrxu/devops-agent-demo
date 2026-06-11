@@ -10,11 +10,13 @@
    - Channels available: `#demo-run-1` through `#demo-run-10`
    - Current run: _______ (pencil mark)
 
-2. **Terminal:** Reset to scenario start
+2. **Terminal:** Reset and re-trigger
    ```bash
-   cd ~/demo && clear
-   cat mock-telemetry/combined_timeline.json | jq '.timeline[0]' 
-   # Shows T+0 (healthy baseline)
+   # Reset alarms to OK
+   ./scripts/demo-run.sh reset
+
+   # When ready for next audience — warms up PI then triggers alarms:
+   ./scripts/demo-run.sh quick
    ```
 
 3. **Browser tabs:** Ensure these are ready
