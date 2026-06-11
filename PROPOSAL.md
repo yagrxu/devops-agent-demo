@@ -1,3 +1,12 @@
+> ⚠️ **SUPERSEDED — historical design doc.** This proposal describes the original
+> **mock-telemetry** approach (static JSON snapshots, no live AWS). The project has
+> since pivoted to **real, deployed AWS infrastructure** (CDK stack
+> `DevOpsAgentDemoStack` in `us-east-1`). For the current design and operating
+> guide see `.kiro/steering/`, `cdk/README.md`, and `docs/STATUS.md`.
+>
+> This file is kept for narrative reference (the incident story, skill business
+> context, and demo-flow script remain valid).
+
 # Demo Simulation Proposal: DevOps Agent Skills in Action
 
 ## Executive Summary
